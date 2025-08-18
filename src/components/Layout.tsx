@@ -1,4 +1,3 @@
-// src/components/Layout.tsx - Enhanced Version (nur mit vorhandenen Komponenten)
 import { Link, NavLink, useLocation } from "react-router-dom";
 import React from "react";
 import { 
@@ -11,7 +10,9 @@ import {
   X,
   Wifi,
   WifiOff,
-  Clock
+  Clock,
+  Zap,
+  TrendingUp
 } from "lucide-react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -49,18 +50,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [location.pathname]);
 
   const navigationItems = [
-    { to: "/", label: "Dashboard", icon: Home },
-    { to: "/teams", label: "Teams", icon: Users },
-    { to: "/games", label: "Games", icon: Calendar },
-    { to: "/stats", label: "Stats", icon: BarChart3 },
-    { to: "/predictions", label: "Predictions", icon: Brain },
+    { to: "/", label: "Dashboard", icon: Home, description: "Playoff Overview" },
+    { to: "/live", label: "Live", icon: Zap, description: "Real-time Data", isLive: true },
+    { to: "/teams", label: "Teams", icon: Users, description: "32 NFL Teams" },
+    { to: "/games", label: "Games", icon: Calendar, description: "Schedule & Results" },
+    { to: "/stats", label: "Stats", icon: BarChart3, description: "Player Leaders" },
+    { to: "/predictions", label: "Predictions", icon: Brain, description: "AI Analysis" },
   ];
 
   const getPageTitle = () => {
-    const path = location.pathname;
-    if (path === "/") return "Dashboard";
-    if (path.startsWith("/teams/")) return "Team Details";
-    return navigationItems.find(item => item.to === path)?.label || "NFL Analytics";
+    const currentItem = navigationItems.find(item => {
+      if (item.to === "/" && location.pathname === "/") return true;
+      if (item.to !== "/" && location.pathname.startsWith(item.to)) return true;
+      return false;
+    });
+    
+    if (location.pathname.startsWith("/teams/")) return "Team Details";
+    return currentItem?.label || "NFL Analytics";
   };
 
   const ConnectionStatus = () => (
@@ -84,7 +90,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800 shadow-lg">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/90 border-b border-slate-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             
@@ -95,6 +101,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   src="/teams/nfl.png" 
                   alt="NFL" 
                   className="h-8 w-8 object-contain transition-transform group-hover:scale-110" 
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "🏈";
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-red-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-sm"></div>
               </div>
@@ -102,7 +111,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <span className="font-bold text-lg bg-gradient-to-r from-blue-400 to-red-400 bg-clip-text text-transparent">
                   NFL Analytics
                 </span>
-                <div className="text-xs text-slate-400">2025/26 Season</div>
+                <div className="text-xs text-slate-400">2024/25 Season</div>
               </div>
             </Link>
 
@@ -112,16 +121,31 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                      isActive 
+                  className={({ isActive }) => {
+                    // Spezielle Logik für Root-Route
+                    const isCurrentlyActive = item.to === "/" 
+                      ? location.pathname === "/" 
+                      : isActive && location.pathname !== "/";
+                    
+                    return `relative flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 group ${
+                      isCurrentlyActive 
                         ? "bg-slate-700 text-white shadow-lg" 
                         : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                    }`
-                  }
+                    }`;
+                  }}
                 >
-                  <item.icon size={18} />
-                  <span className="font-medium">{item.label}</span>
+                  <div className="relative">
+                    <item.icon size={18} />
+                    {item.isLive && (
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">{item.label}</span>
+                    <span className="text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {item.description}
+                    </span>
+                  </div>
                 </NavLink>
               ))}
             </nav>
@@ -153,16 +177,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <NavLink
                     key={item.to}
                     to={item.to}
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
-                        isActive 
+                    className={({ isActive }) => {
+                      const isCurrentlyActive = item.to === "/" 
+                        ? location.pathname === "/" 
+                        : isActive && location.pathname !== "/";
+                      
+                      return `flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
+                        isCurrentlyActive 
                           ? "bg-slate-700 text-white" 
                           : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                      }`
-                    }
+                      }`;
+                    }}
                   >
-                    <item.icon size={20} />
-                    <span className="font-medium">{item.label}</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <item.icon size={20} />
+                        {item.isLive && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-medium">{item.label}</div>
+                        <div className="text-xs text-slate-400">{item.description}</div>
+                      </div>
+                    </div>
                   </NavLink>
                 ))}
               </nav>
@@ -179,7 +217,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Page Title Bar - nur auf kleineren Screens */}
       <div className="md:hidden bg-slate-800/50 px-4 py-3 border-b border-slate-700">
-        <h1 className="text-lg font-semibold text-white">{getPageTitle()}</h1>
+        <h1 className="text-lg font-semibold text-white flex items-center space-x-2">
+          <span>{getPageTitle()}</span>
+          {location.pathname === "/live" && (
+            <div className="flex items-center space-x-1 text-red-400">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-xs">LIVE</span>
+            </div>
+          )}
+        </h1>
       </div>
 
       {/* Main Content */}
@@ -211,12 +257,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* Brand */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <img src="/teams/nfl.png" alt="NFL" className="h-6 w-6 object-contain" />
+                <span className="text-2xl">🏈</span>
                 <span className="font-bold text-lg">NFL Analytics</span>
               </div>
               <p className="text-slate-400 text-sm leading-relaxed max-w-md">
                 Your ultimate destination for NFL insights, predictions, and statistics. 
-                Powered by advanced AI and real-time data from the 2025/26 season.
+                Powered by advanced AI and real-time data from the 2024/25 season.
               </p>
             </div>
 
@@ -228,24 +274,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <li key={item.to}>
                     <Link 
                       to={item.to}
-                      className="text-slate-400 hover:text-white transition-colors text-sm"
+                      className="text-slate-400 hover:text-white transition-colors text-sm flex items-center space-x-1"
                     >
-                      {item.label}
+                      <item.icon size={14} />
+                      <span>{item.label}</span>
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Info */}
+            {/* Season Info */}
             <div>
               <h3 className="font-semibold text-white mb-3">Season Info</h3>
               <ul className="space-y-2 text-sm text-slate-400">
-                <li>2025/26 NFL Season</li>
-                <li>Playoff Games Live</li>
-                <li>32 Teams Tracked</li>
-                <li>AI Predictions Active</li>
-                <li>Real-time Updates</li>
+                <li className="flex items-center space-x-2">
+                  <TrendingUp size={14} />
+                  <span>2024/25 NFL Season</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <Zap size={14} />
+                  <span>Playoff Games Live</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <Users size={14} />
+                  <span>32 Teams Tracked</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <Brain size={14} />
+                  <span>AI Predictions Active</span>
+                </li>
               </ul>
             </div>
           </div>

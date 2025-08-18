@@ -1,16 +1,16 @@
-// src/pages/Dashboard.tsx - Enhanced Version
 import React from "react";
 import Layout from "../components/Layout";
 import { fetchTodayScoreboard } from "../lib/espn";
 import { todaysGames, predictions } from "../data/mockData";
-import { TrendingUp, Clock, MapPin, Users } from "lucide-react";
+import { TrendingUp, Clock, MapPin, Users, Zap, Calendar, Trophy, BarChart3, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const [events, setEvents] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [updated, setUpdated] = React.useState<Date | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [showMockData, setShowMockData] = React.useState(false);
+  const [showLiveData, setShowLiveData] = React.useState(false);
 
   React.useEffect(() => {
     const loadData = async () => {
@@ -18,17 +18,13 @@ export default function Dashboard() {
         const data = await fetchTodayScoreboard();
         const liveEvents = data?.events ?? [];
         
-        if (liveEvents.length === 0) {
-          // Fallback zu Mock-Playoff-Daten wenn keine Live-Spiele
-          setShowMockData(true);
-          setEvents([]);
-        } else {
+        if (liveEvents.length > 0) {
           setEvents(liveEvents);
+          setShowLiveData(true);
         }
         setUpdated(new Date());
       } catch (e: any) {
         setError(e?.message || "Failed to load scoreboard");
-        setShowMockData(true); // Bei Fehler auch Mock-Daten anzeigen
       } finally {
         setLoading(false);
       }
@@ -36,8 +32,8 @@ export default function Dashboard() {
 
     loadData();
     
-    // Auto-refresh alle 30 Sekunden für Live-Spiele
-    const interval = setInterval(loadData, 30000);
+    // Auto-refresh alle 60 Sekunden für Dashboard
+    const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -62,7 +58,7 @@ export default function Dashboard() {
     </div>
   );
 
-  const GameCard = ({ game, prediction }: { game: any, prediction?: any }) => {
+  const ESPNGameCard = ({ game }: { game: any }) => {
     const c = game.competitions?.[0];
     const home = c?.competitors?.find((x: any) => x.homeAway === "home");
     const away = c?.competitors?.find((x: any) => x.homeAway === "away");
@@ -124,50 +120,20 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-slate-400">
-          <div className="flex items-center space-x-1">
-            <MapPin size={12} />
-            <span>{c?.venue?.fullName || "TBD"}</span>
-          </div>
-          
-          {prediction && (
-            <div className="flex items-center space-x-1 text-purple-400">
-              <TrendingUp size={12} />
-              <span>Prediction: {prediction.confidence}%</span>
-            </div>
-          )}
+        <div className="flex items-center justify-center text-xs text-slate-400">
+          <MapPin size={12} className="mr-1" />
+          <span>{c?.venue?.fullName || "TBD"}</span>
         </div>
-
-        {prediction && (
-          <div className="mt-3 pt-3 border-t border-slate-700">
-            <div className="flex justify-between text-xs">
-              <span className="text-blue-400">
-                {away?.team?.abbreviation}: {prediction.awayWinProbability}%
-              </span>
-              <span className="text-red-400">
-                {home?.team?.abbreviation}: {prediction.homeWinProbability}%
-              </span>
-            </div>
-            <div className="mt-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-red-500"
-                style={{ 
-                  background: `linear-gradient(to right, #3b82f6 ${prediction.awayWinProbability}%, #ef4444 ${prediction.awayWinProbability}%)`
-                }}
-              />
-            </div>
-          </div>
-        )}
       </div>
     );
   };
 
-  const MockGameCard = ({ game, prediction }: { game: any, prediction: any }) => (
-    <div className="group rounded-xl border border-slate-700 bg-slate-900/60 hover:bg-slate-900 transition-all duration-300 p-4 hover:border-slate-600">
+  const PlayoffGameCard = ({ game, prediction }: { game: any, prediction: any }) => (
+    <div className="group rounded-xl border border-slate-700 bg-gradient-to-br from-slate-900/90 to-slate-800/90 hover:bg-slate-900 transition-all duration-300 p-4 hover:border-slate-600">
       <div className="flex items-center justify-between text-sm mb-3">
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span className="text-blue-400 font-bold text-sm">PLAYOFF</span>
+          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+          <span className="text-yellow-400 font-bold text-sm">PLAYOFF</span>
         </div>
         <div className="flex items-center text-slate-400 space-x-1">
           <Clock size={14} />
@@ -186,7 +152,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="font-semibold text-white">{game.awayTeam.city} {game.awayTeam.name}</div>
-            <div className="text-xs text-slate-400">{game.awayTeam.abbreviation}</div>
+            <div className="text-xs text-slate-400">{game.awayTeam.wins}-{game.awayTeam.losses}</div>
           </div>
           <div className="ml-auto text-2xl font-bold text-white">-</div>
         </div>
@@ -197,7 +163,7 @@ export default function Dashboard() {
           <div className="mr-auto text-2xl font-bold text-white">-</div>
           <div className="text-right">
             <div className="font-semibold text-white">{game.homeTeam.city} {game.homeTeam.name}</div>
-            <div className="text-xs text-slate-400">{game.homeTeam.abbreviation}</div>
+            <div className="text-xs text-slate-400">{game.homeTeam.wins}-{game.homeTeam.losses}</div>
           </div>
           <div className="w-10 h-10 flex items-center justify-center">
             <img 
@@ -209,27 +175,17 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
-        <div className="flex items-center space-x-1">
-          <MapPin size={12} />
-          <span>{game.venue}</span>
-        </div>
-        <div className="flex items-center space-x-1 text-purple-400">
-          <TrendingUp size={12} />
-          <span>AI Prediction: {prediction.confidence}%</span>
-        </div>
-      </div>
-
       <div className="pt-3 border-t border-slate-700">
         <div className="flex justify-between text-xs mb-2">
           <span className="text-blue-400">
             {game.awayTeam.abbreviation}: {prediction.awayWinProbability}%
           </span>
+          <span className="text-purple-400 font-medium">AI Prediction</span>
           <span className="text-red-400">
             {game.homeTeam.abbreviation}: {prediction.homeWinProbability}%
           </span>
         </div>
-        <div className="h-1 bg-slate-800 rounded-full overflow-hidden mb-2">
+        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
           <div 
             className="h-full bg-gradient-to-r from-blue-500 to-red-500"
             style={{ 
@@ -237,38 +193,73 @@ export default function Dashboard() {
             }}
           />
         </div>
-        <div className="text-center text-sm text-purple-400">
-          Predicted: {prediction.predictedScore.away} - {prediction.predictedScore.home}
-        </div>
       </div>
     </div>
   );
 
+  const QuickActionCard = ({ 
+    title, 
+    description, 
+    icon: Icon, 
+    link, 
+    color,
+    badge 
+  }: {
+    title: string;
+    description: string;
+    icon: any;
+    link: string;
+    color: string;
+    badge?: string;
+  }) => (
+    <Link 
+      to={link}
+      className={`group rounded-xl border border-slate-700 bg-slate-900/60 hover:bg-slate-900 transition-all duration-300 p-6 hover:border-${color}-500/50 block`}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <Icon className={`text-${color}-400 group-hover:scale-110 transition-transform`} size={32} />
+        {badge && (
+          <span className={`px-2 py-1 rounded-full bg-${color}-900/40 text-${color}-400 text-xs font-medium`}>
+            {badge}
+          </span>
+        )}
+        <ArrowRight className="text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" size={20} />
+      </div>
+      <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
+      <p className="text-slate-400 text-sm">{description}</p>
+    </Link>
+  );
+
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome to NFL Analytics</h1>
-          <p className="text-slate-300 mb-6">
-            Your ultimate destination for NFL insights, predictions, and statistics.
+      <div className="space-y-8">
+        {/* Hero Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 bg-clip-text text-transparent">
+            Welcome to NFL Analytics
+          </h1>
+          <p className="text-slate-300 text-lg max-w-3xl mx-auto">
+            Your ultimate destination for NFL insights, live scores, predictions, and analytics. 
+            Follow the playoff race and get AI-powered predictions for upcoming games.
           </p>
         </div>
 
+        {/* Status Bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {updated ? (
+            {showLiveData && updated ? (
               <span className="px-3 py-1 rounded-full bg-emerald-900/40 text-emerald-300 text-sm">
                 ✅ Live Data • Updated {updated.toLocaleTimeString()}
               </span>
             ) : (
-              <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-sm">
-                🔄 Refreshing…
+              <span className="px-3 py-1 rounded-full bg-purple-900/40 text-purple-300 text-sm">
+                🏆 Playoff Preview
               </span>
             )}
             
-            {showMockData && (
-              <span className="px-3 py-1 rounded-full bg-purple-900/40 text-purple-300 text-sm">
-                🏆 Playoff Games (Mock Data)
+            {error && (
+              <span className="px-3 py-1 rounded-full bg-yellow-900/40 text-yellow-300 text-sm">
+                ⚠️ Using Mock Data
               </span>
             )}
           </div>
@@ -279,69 +270,195 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            {showMockData ? "Upcoming Playoff Games" : "Today's Games"}
-          </h2>
+        {/* Games Section */}
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-2">
+              <Calendar className="text-blue-400" size={24} />
+              <h2 className="text-2xl font-bold text-white">
+                {showLiveData ? "Live NFL Games" : "Upcoming Playoff Games"}
+              </h2>
+            </div>
+            
+            <Link 
+              to={showLiveData ? "/live" : "/predictions"}
+              className="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              <span className="text-sm">View All</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
           
           {loading && (
-            <div className="text-slate-300">Loading games...</div>
-          )}
-          
-          {error && !showMockData && (
-            <div className="text-red-400 mb-4">⚠️ {error}</div>
+            <div className="text-center py-8">
+              <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-slate-300">Loading NFL data...</p>
+            </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
-            {showMockData ? (
+            {showLiveData && events.length > 0 ? (
+              // Zeige Live ESPN-Daten
+              events.slice(0, 4).map((game) => (
+                <ESPNGameCard key={game.id} game={game} />
+              ))
+            ) : (
               // Zeige Mock-Playoff-Daten
-              todaysGames.map((game, index) => (
-                <MockGameCard 
+              todaysGames.slice(0, 4).map((game, index) => (
+                <PlayoffGameCard 
                   key={game.id} 
                   game={game} 
                   prediction={predictions[index]} 
                 />
               ))
-            ) : (
-              // Zeige Live ESPN-Daten
-              events.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))
             )}
           </div>
 
-          {!loading && !error && events.length === 0 && !showMockData && (
+          {!loading && !showLiveData && events.length === 0 && (
             <div className="text-center py-8 text-slate-300">
-              <p className="mb-4">No games scheduled today.</p>
-              <button 
-                onClick={() => setShowMockData(true)}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
-              >
-                Show Upcoming Playoff Games
-              </button>
+              <Calendar className="mx-auto mb-4 text-slate-500" size={48} />
+              <p className="mb-4">No live games today.</p>
+              <p className="text-sm text-slate-400">Showing upcoming playoff matchups with AI predictions.</p>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-4 text-center">
-            <div className="text-2xl font-bold text-blue-400">32</div>
-            <div className="text-sm text-slate-400">NFL Teams</div>
+        {/* Quick Actions Grid */}
+        <section>
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Zap className="text-yellow-400 mr-2" size={24} />
+            Quick Access
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <QuickActionCard
+              title="Live Dashboard"
+              description="Real-time scores, stats, and updates powered by ESPN API"
+              icon={Zap}
+              link="/live"
+              color="red"
+              badge="LIVE"
+            />
+            
+            <QuickActionCard
+              title="AI Predictions"
+              description="Machine learning predictions for upcoming playoff games"
+              icon={TrendingUp}
+              link="/predictions"
+              color="purple"
+              badge="AI POWERED"
+            />
+            
+            <QuickActionCard
+              title="Team Analytics"
+              description="Detailed stats and rosters for all 32 NFL teams"
+              icon={Users}
+              link="/teams"
+              color="blue"
+            />
+            
+            <QuickActionCard
+              title="Player Stats"
+              description="Season leaders in passing, rushing, and receiving"
+              icon={BarChart3}
+              link="/stats"
+              color="green"
+            />
+            
+            <QuickActionCard
+              title="Game Schedule"
+              description="Complete schedule with results and upcoming games"
+              icon={Calendar}
+              link="/games"
+              color="indigo"
+            />
+            
+            <QuickActionCard
+              title="Playoff Bracket"
+              description="Track the road to Super Bowl LIX"
+              icon={Trophy}
+              link="/predictions"
+              color="yellow"
+              badge="PLAYOFFS"
+            />
           </div>
-          <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-4 text-center">
-            <div className="text-2xl font-bold text-green-400">18</div>
-            <div className="text-sm text-slate-400">Regular Weeks</div>
+        </section>
+
+        {/* Season Stats */}
+        <section>
+          <h2 className="text-2xl font-bold text-white mb-6">2024/25 Season Overview</h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-6 text-center">
+              <div className="text-3xl font-bold text-blue-400 mb-2">32</div>
+              <div className="text-sm text-slate-400">NFL Teams</div>
+              <div className="text-xs text-slate-500 mt-1">Complete Roster Data</div>
+            </div>
+            
+            <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-6 text-center">
+              <div className="text-3xl font-bold text-green-400 mb-2">14</div>
+              <div className="text-sm text-slate-400">Playoff Teams</div>
+              <div className="text-xs text-slate-500 mt-1">Wildcard Weekend</div>
+            </div>
+            
+            <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-6 text-center">
+              <div className="text-3xl font-bold text-purple-400 mb-2">89%</div>
+              <div className="text-sm text-slate-400">AI Accuracy</div>
+              <div className="text-xs text-slate-500 mt-1">Playoff Predictions</div>
+            </div>
+            
+            <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-6 text-center">
+              <div className="text-3xl font-bold text-red-400 mb-2">
+                {showLiveData ? events.filter(e => e.status?.type?.name?.includes('STATUS_IN_PROGRESS')).length : '0'}
+              </div>
+              <div className="text-sm text-slate-400">Live Games</div>
+              <div className="text-xs text-slate-500 mt-1">Right Now</div>
+            </div>
           </div>
-          <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-4 text-center">
-            <div className="text-2xl font-bold text-purple-400">14</div>
-            <div className="text-sm text-slate-400">Playoff Teams</div>
+        </section>
+
+        {/* Features Highlight */}
+        <section className="bg-gradient-to-r from-slate-900/60 via-slate-800/60 to-slate-900/60 rounded-xl border border-slate-700 p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-4">Powered by Advanced Analytics</h2>
+            <p className="text-slate-300 max-w-2xl mx-auto">
+              Our platform combines real-time ESPN data with machine learning algorithms 
+              to provide the most accurate NFL predictions and insights available.
+            </p>
           </div>
-          <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-4 text-center">
-            <div className="text-2xl font-bold text-red-400">4</div>
-            <div className="text-sm text-slate-400">Playoff Rounds</div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-blue-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Zap className="text-blue-400" size={28} />
+              </div>
+              <h3 className="text-white font-semibold mb-2">Real-time Data</h3>
+              <p className="text-slate-400 text-sm">
+                Live scores and stats updated every 30 seconds during games
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-purple-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="text-purple-400" size={28} />
+              </div>
+              <h3 className="text-white font-semibold mb-2">AI Predictions</h3>
+              <p className="text-slate-400 text-sm">
+                Machine learning models with 89% accuracy in playoff games
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-green-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="text-green-400" size={28} />
+              </div>
+              <h3 className="text-white font-semibold mb-2">Deep Analytics</h3>
+              <p className="text-slate-400 text-sm">
+                Comprehensive player stats and team performance metrics
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </Layout>
   );
