@@ -1,8 +1,8 @@
-// src/pages/LiveDashboard.tsx - Dashboard mit echten ESPN API Daten
+// src/pages/LiveDashboard.tsx - Korrigierte Imports
 import React from "react";
 import Layout from "../components/Layout";
-import { useLiveNFL, useLiveScores, useNFLNews } from "../hooks/useLiveNFL";
-import { LiveGame, NFLNews } from "../services/enhancedESPNApi";
+import { enhancedESPNApi } from "../services/enhancedESPNApi";
+import { fetchTodayScoreboard, fetchLeaders } from "../lib/espn";
 import { 
   Clock, 
   MapPin, 
@@ -14,41 +14,207 @@ import {
   WifiOff,
   AlertCircle,
   Trophy,
-  Calendar
+  Calendar,
+  BarChart3
 } from "lucide-react";
 
+// Typen für Live Dashboard
+interface LiveGame {
+  id: string;
+  homeTeam: {
+    id: string;
+    name: string;
+    abbreviation: string;
+    score: number;
+    logo: string;
+    record: string;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    abbreviation: string;
+    score: number;
+    logo: string;
+    record: string;
+  };
+  status: {
+    type: string;
+    detail: string;
+    period?: number;
+    clock?: string;
+  };
+  venue: string;
+  date: string;
+  week: number;
+  isPlayoff: boolean;
+}
+
+interface PlayerStat {
+  id: string;
+  name: string;
+  position: string;
+  team: string;
+  stats: {
+    passingYards?: number;
+    rushingYards?: number;
+    receivingYards?: number;
+    touchdowns?: number;
+  };
+}
+
+interface NewsItem {
+  id: string;
+  headline: string;
+  description: string;
+  published: string;
+  image?: string;
+}
+
 export default function LiveDashboard() {
-  const {
-    liveGames,
-    playoffGames,
-    todaysGames,
-    liveActiveGames,
-    scheduledGames,
-    completedGames,
-    news,
-    passingLeaders,
-    rushingLeaders,
-    receivingLeaders,
-    loading,
-    error,
-    lastUpdated,
-    isLive,
-    isDataFresh,
-    dataAge,
-    refresh,
-    totalGames,
-    hasData
-  } = useLiveNFL({
-    autoRefresh: true,
-    refreshInterval: 30, // 30 Sekunden
-    includePlayoffs: true,
-    includeNews: true,
-    includeStandings: true
-  });
+  // State Management
+  const [liveGames, setLiveGames] = React.useState<LiveGame[]>([]);
+  const [playoffGames, setPlayoffGames] = React.useState<LiveGame[]>([]);
+  const [passingLeaders, setPassingLeaders] = React.useState<PlayerStat[]>([]);
+  const [rushingLeaders, setRushingLeaders] = React.useState<PlayerStat[]>([]);
+  const [receivingLeaders, setReceivingLeaders] = React.useState<PlayerStat[]>([]);
+  const [news, setNews] = React.useState<NewsItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = React.useState<Date | null>(null);
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
 
-  // Schnelle Live-Scores (15s Updates)
-  const { scores: quickScores } = useLiveScores();
+  // Online/Offline Detection
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Data Loading Function
+  const loadData = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load live games from ESPN
+      const scoreboard = await fetchTodayScoreboard();
+      const events = scoreboard?.events || [];
+      
+      // Map ESPN events to our LiveGame format
+      const mappedGames: LiveGame[] = events.map((event: any) => {
+        const competition = event.competitions?.[0];
+        const homeTeam = competition?.competitors?.find((c: any) => c.homeAway === 'home');
+        const awayTeam = competition?.competitors?.find((c: any) => c.homeAway === 'away');
+        
+        return {
+          id: event.id,
+          homeTeam: {
+            id: homeTeam?.team?.id || '',
+            name: homeTeam?.team?.displayName || '',
+            abbreviation: homeTeam?.team?.abbreviation || '',
+            score: parseInt(homeTeam?.score || '0'),
+            logo: homeTeam?.team?.logo || `/teams/${homeTeam?.team?.abbreviation}.png`,
+            record: homeTeam?.team?.record?.items?.[0]?.summary || '0-0'
+          },
+          awayTeam: {
+            id: awayTeam?.team?.id || '',
+            name: awayTeam?.team?.displayName || '',
+            abbreviation: awayTeam?.team?.abbreviation || '',
+            score: parseInt(awayTeam?.score || '0'),
+            logo: awayTeam?.team?.logo || `/teams/${awayTeam?.team?.abbreviation}.png`,
+            record: awayTeam?.team?.record?.items?.[0]?.summary || '0-0'
+          },
+          status: {
+            type: event.status?.type?.name || 'scheduled',
+            detail: event.status?.type?.shortDetail || '',
+            period: event.status?.period,
+            clock: event.status?.displayClock
+          },
+          venue: competition?.venue?.fullName || 'TBD',
+          date: event.date,
+          week: event.week?.number || 1,
+          isPlayoff: event.season?.type === 3
+        };
+      });
+
+      setLiveGames(mappedGames);
+
+      // Load player leaders
+      try {
+        const [passingData, rushingData, receivingData] = await Promise.all([
+          fetchLeaders(2024, 'passingYards'),
+          fetchLeaders(2024, 'rushingYards'),
+          fetchLeaders(2024, 'receivingYards')
+        ]);
+
+        // Parse passing leaders
+        const passingStats = passingData?.categories?.[0]?.leaders?.[0]?.leaders?.slice(0, 5).map((leader: any) => ({
+          id: leader.athlete?.id || '',
+          name: leader.athlete?.displayName || '',
+          position: leader.athlete?.position?.abbreviation || '',
+          team: leader.team?.abbreviation || '',
+          stats: { passingYards: leader.value || leader.statValue || 0 }
+        })) || [];
+
+        // Parse rushing leaders
+        const rushingStats = rushingData?.categories?.[0]?.leaders?.[0]?.leaders?.slice(0, 5).map((leader: any) => ({
+          id: leader.athlete?.id || '',
+          name: leader.athlete?.displayName || '',
+          position: leader.athlete?.position?.abbreviation || '',
+          team: leader.team?.abbreviation || '',
+          stats: { rushingYards: leader.value || leader.statValue || 0 }
+        })) || [];
+
+        // Parse receiving leaders
+        const receivingStats = receivingData?.categories?.[0]?.leaders?.[0]?.leaders?.slice(0, 5).map((leader: any) => ({
+          id: leader.athlete?.id || '',
+          name: leader.athlete?.displayName || '',
+          position: leader.athlete?.position?.abbreviation || '',
+          team: leader.team?.abbreviation || '',
+          stats: { receivingYards: leader.value || leader.statValue || 0 }
+        })) || [];
+
+        setPassingLeaders(passingStats);
+        setRushingLeaders(rushingStats);
+        setReceivingLeaders(receivingStats);
+      } catch (statsError) {
+        console.warn('❌ Failed to load player stats:', statsError);
+        // Continue without stats
+      }
+
+      setLastUpdated(new Date());
+      console.log(`✅ Live Dashboard data loaded: ${mappedGames.length} games`);
+
+    } catch (error: any) {
+      console.error('❌ Error loading live dashboard data:', error);
+      setError(error.message || 'Failed to load live data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Auto-refresh setup
+  React.useEffect(() => {
+    loadData();
+
+    const interval = setInterval(() => {
+      if (isOnline) {
+        console.log('🔄 Auto-refreshing live dashboard data...');
+        loadData();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [loadData, isOnline]);
+
+  // Helper functions
   const formatTimeAgo = (seconds: number | null) => {
     if (!seconds) return 'Never';
     if (seconds < 60) return `${seconds}s ago`;
@@ -56,6 +222,34 @@ export default function LiveDashboard() {
     return `${Math.floor(seconds / 3600)}h ago`;
   };
 
+  const getDataAge = () => {
+    if (!lastUpdated) return null;
+    return Math.floor((Date.now() - lastUpdated.getTime()) / 1000);
+  };
+
+  const isDataFresh = () => {
+    const age = getDataAge();
+    return age !== null && age < 120; // Fresh für 2 Minuten
+  };
+
+  // Get live games
+  const liveActiveGames = liveGames.filter(game => 
+    game.status.type.includes('IN_PROGRESS') || 
+    game.status.type.includes('HALFTIME') ||
+    game.status.type.toLowerCase().includes('live')
+  );
+
+  const scheduledGames = liveGames.filter(game => 
+    game.status.type.includes('SCHEDULED') || 
+    game.status.type.includes('PRE')
+  );
+
+  const completedGames = liveGames.filter(game => 
+    game.status.type.includes('FINAL') || 
+    game.status.type.includes('POST')
+  );
+
+  // Components
   const StatusBadge = ({ isLive, isDataFresh, error }: {
     isLive: boolean;
     isDataFresh: boolean;
@@ -97,7 +291,9 @@ export default function LiveDashboard() {
   };
 
   const LiveGameCard = ({ game }: { game: LiveGame }) => {
-    const isLiveGame = game.status.type.includes('IN_PROGRESS') || game.status.type.includes('HALFTIME');
+    const isLiveGame = game.status.type.includes('IN_PROGRESS') || 
+                       game.status.type.includes('HALFTIME') ||
+                       game.status.type.toLowerCase().includes('live');
     const isCompleted = game.status.type.includes('FINAL');
     
     return (
@@ -212,7 +408,7 @@ export default function LiveDashboard() {
 
   const PlayerLeaderCard = ({ title, players, statKey }: {
     title: string;
-    players: any[];
+    players: PlayerStat[];
     statKey: string;
   }) => (
     <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-4">
@@ -228,35 +424,10 @@ export default function LiveDashboard() {
               </div>
             </div>
             <div className="text-white font-bold">
-              {player.stats[statKey]?.toLocaleString() || '-'}
+              {(player.stats as any)[statKey]?.toLocaleString() || '-'}
             </div>
           </div>
         ))}
-      </div>
-    </div>
-  );
-
-  const NewsCard = ({ article }: { article: NFLNews }) => (
-    <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-4 hover:border-slate-600 transition-all">
-      <div className="flex space-x-3">
-        {article.image && (
-          <img 
-            src={article.image}
-            alt={article.headline}
-            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <h4 className="text-white font-medium text-sm leading-tight mb-1">
-            {article.headline}
-          </h4>
-          <p className="text-slate-400 text-xs line-clamp-2 mb-2">
-            {article.description}
-          </p>
-          <div className="text-slate-500 text-xs">
-            {new Date(article.published).toLocaleDateString()}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -274,16 +445,20 @@ export default function LiveDashboard() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <StatusBadge isLive={isLive} isDataFresh={isDataFresh} error={error} />
+            <StatusBadge 
+              isLive={liveActiveGames.length > 0} 
+              isDataFresh={isDataFresh()} 
+              error={error} 
+            />
             
             {lastUpdated && (
               <span className="text-slate-400 text-sm">
-                Updated {formatTimeAgo(dataAge)}
+                Updated {formatTimeAgo(getDataAge())}
               </span>
             )}
             
             <button
-              onClick={refresh}
+              onClick={loadData}
               disabled={loading}
               className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
@@ -294,7 +469,7 @@ export default function LiveDashboard() {
         </div>
 
         {/* Loading State */}
-        {loading && !hasData && (
+        {loading && liveGames.length === 0 && (
           <div className="text-center py-8">
             <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-slate-300">Loading live NFL data...</p>
@@ -349,24 +524,23 @@ export default function LiveDashboard() {
           </section>
         )}
 
-        {/* Today's Games */}
+        {/* All Games */}
         <section>
           <div className="flex items-center space-x-2 mb-4">
             <Calendar className="text-blue-400" size={24} />
             <h2 className="text-2xl font-bold text-white">
-              {todaysGames.length > 0 ? "Today's Games" : "Recent & Upcoming Games"}
+              {liveGames.length > 0 ? "Today's Games" : "No Games Today"}
             </h2>
             <div className="flex-1 h-px bg-gradient-to-r from-blue-400/50 to-transparent ml-4"></div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {(todaysGames.length > 0 ? todaysGames : [...playoffGames, ...liveGames].slice(0, 6))
-              .map(game => (
-                <LiveGameCard key={game.id} game={game} />
-              ))}
+            {liveGames.slice(0, 6).map(game => (
+              <LiveGameCard key={game.id} game={game} />
+            ))}
           </div>
           
-          {todaysGames.length === 0 && liveGames.length === 0 && playoffGames.length === 0 && !loading && (
+          {liveGames.length === 0 && !loading && (
             <div className="text-center py-8 text-slate-300">
               <Calendar className="mx-auto mb-4 text-slate-500" size={48} />
               <p>No games scheduled for today.</p>
@@ -375,40 +549,40 @@ export default function LiveDashboard() {
           )}
         </section>
 
-        {/* Player Leaders & News */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Player Leaders */}
-          <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-xl font-bold text-white mb-4">2024 Season Leaders</h2>
+        {/* Player Leaders */}
+        {(passingLeaders.length > 0 || rushingLeaders.length > 0 || receivingLeaders.length > 0) && (
+          <section>
+            <div className="flex items-center space-x-2 mb-4">
+              <BarChart3 className="text-green-400" size={24} />
+              <h2 className="text-2xl font-bold text-white">2024 Season Leaders</h2>
+              <div className="flex-1 h-px bg-gradient-to-r from-green-400/50 to-transparent ml-4"></div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <PlayerLeaderCard 
-                title="Passing Yards" 
-                players={passingLeaders} 
-                statKey="passingYards" 
-              />
-              <PlayerLeaderCard 
-                title="Rushing Yards" 
-                players={rushingLeaders} 
-                statKey="rushingYards" 
-              />
-              <PlayerLeaderCard 
-                title="Receiving Yards" 
-                players={receivingLeaders} 
-                statKey="receivingYards" 
-              />
+              {passingLeaders.length > 0 && (
+                <PlayerLeaderCard 
+                  title="Passing Yards" 
+                  players={passingLeaders} 
+                  statKey="passingYards" 
+                />
+              )}
+              {rushingLeaders.length > 0 && (
+                <PlayerLeaderCard 
+                  title="Rushing Yards" 
+                  players={rushingLeaders} 
+                  statKey="rushingYards" 
+                />
+              )}
+              {receivingLeaders.length > 0 && (
+                <PlayerLeaderCard 
+                  title="Receiving Yards" 
+                  players={receivingLeaders} 
+                  statKey="receivingYards" 
+                />
+              )}
             </div>
-          </div>
-
-          {/* NFL News */}
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4">Latest NFL News</h2>
-            <div className="space-y-3">
-              {news.slice(0, 5).map(article => (
-                <NewsCard key={article.id} article={article} />
-              ))}
-            </div>
-          </div>
-        </div>
+          </section>
+        )}
       </div>
     </Layout>
   );
