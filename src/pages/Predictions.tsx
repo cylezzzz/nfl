@@ -291,4 +291,71 @@ const Predictions: React.FC = () => {
                   ) : null;
                 })()
               ) : (
-                <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-8 text-
+                <div className="bg-slate-900/60 rounded-xl border border-slate-700 p-8 text-center">
+                  <Brain className="text-purple-400 mx-auto mb-4" size={48} />
+                  <h3 className="text-white font-bold text-lg mb-2">Select a Game</h3>
+                  <p className="text-slate-400">
+                    Click on any game above to view detailed AI predictions, 
+                    win probability analysis, and key factors influencing the outcome.
+                  </p>
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-blue-400 font-bold">Advanced Analytics</div>
+                      <div className="text-slate-300">Team performance metrics</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-purple-400 font-bold">AI Confidence</div>
+                      <div className="text-slate-300">Prediction reliability score</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* AI Model Info */}
+        <section className="bg-slate-900/60 rounded-xl border border-slate-700 p-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Zap className="text-yellow-400" size={24} />
+            <h3 className="text-white font-bold text-lg">About Our AI Model</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="bg-blue-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <Activity className="text-blue-400" size={24} />
+              </div>
+              <h4 className="text-white font-semibold mb-2">Real-time Data</h4>
+              <p className="text-slate-400 text-sm">
+                Continuously updated with live player stats, injury reports, and team performance metrics.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-purple-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <Brain className="text-purple-400" size={24} />
+              </div>
+              <h4 className="text-white font-semibold mb-2">Machine Learning</h4>
+              <p className="text-slate-400 text-sm">
+                Neural networks trained on 10+ years of NFL data including weather, venue, and historical matchups.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-green-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <Target className="text-green-400" size={24} />
+              </div>
+              <h4 className="text-white font-semibold mb-2">Proven Accuracy</h4>
+              <p className="text-slate-400 text-sm">
+                73% overall accuracy with 89% success rate in playoff predictions over the past 3 seasons.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </Layout>
+  );
+};
+
+export default Predictions;

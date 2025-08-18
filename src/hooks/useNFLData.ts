@@ -1,274 +1,384 @@
-// src/hooks/useNFLData.ts
+// src/hooks/useLiveNFL.ts - React Hook für echte NFL Live-Daten
 import { useState, useEffect, useCallback } from 'react';
-import { Player, Game, Prediction } from '../types';
-import { nflApiService } from '../services/nflApi';
-import { aiPredictionService } from '../services/aiPredictionService';
-import { players as mockPlayers, todaysGames as mockGames, predictions as mockPredictions } from '../data/mockData';
+import { enhancedESPNApi, LiveGame, PlayerStats, NFLNews } from '../services/enhancedESPNApi';
 
-interface NFLDataState {
-  players: Player[];
-  todaysGames: Game[];
-  recentGames: Game[];
-  predictions: Prediction[];
+interface LiveNFLState {
+  // Games Data
+  liveGames: LiveGame[];
+  playoffGames: LiveGame[];
+  weekGames: LiveGame[];
+  
+  // Player Data
+  passingLeaders: PlayerStats[];
+  rushingLeaders: PlayerStats[];
+  receivingLeaders: PlayerStats[];
+  
+  // News & Info
+  news: NFLNews[];
+  standings: any[];
+  
+  // Status
   loading: boolean;
   error: string | null;
   lastUpdated: Date | null;
+  isLive: boolean;
 }
 
-export const useNFLData = () => {
-  const [state, setState] = useState<NFLDataState>({
-    players: mockPlayers,
-    todaysGames: mockGames,
-    recentGames: [],
-    predictions: mockPredictions,
-    loading: false,
+interface UseLiveNFLOptions {
+  autoRefresh?: boolean;
+  refreshInterval?: number; // in seconds
+  includePlayoffs?: boolean;
+  includeNews?: boolean;
+  includeStandings?: boolean;
+  week?: number;
+  year?: number;
+}
+
+export const useLiveNFL = (options: UseLiveNFLOptions = {}) => {
+  const {
+    autoRefresh = true,
+    refreshInterval = 30, // 30 Sekunden Standard
+    includePlayoffs = true,
+    includeNews = true,
+    includeStandings = true,
+    week,
+    year = 2024
+  } = options;
+
+  const [state, setState] = useState<LiveNFLState>({
+    liveGames: [],
+    playoffGames: [],
+    weekGames: [],
+    passingLeaders: [],
+    rushingLeaders: [],
+    receivingLeaders: [],
+    news: [],
+    standings: [],
+    loading: true,
     error: null,
-    lastUpdated: null
+    lastUpdated: null,
+    isLive: false
   });
 
-  const updatePlayers = useCallback(async () => {
+  // Hauptdaten-Loading Funktion
+  const loadData = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
+
+      // Bestimme welche Daten geladen werden sollen
+      const promises: Promise<any>[] = [];
       
-      // Versuche Live-Daten zu laden
-      const livePlayers = await nflApiService.getAllPlayers();
+      // 1. Live Games (immer laden)
+      promises.push(enhancedESPNApi.getLiveGames());
       
-      if (livePlayers.length > 0) {
-        setState(prev => ({
-          ...prev,
-          players: livePlayers,
-          loading: false,
-          lastUpdated: new Date()
-        }));
-        console.log('✅ Live player data loaded successfully');
-      } else {
-        // Fallback zu Mock-Daten
-        setState(prev => ({
-          ...prev,
-          players: mockPlayers,
-          loading: false,
-          lastUpdated: new Date()
-        }));
-        console.log('⚠️ Using mock player data as fallback');
+      // 2. Playoff Games (wenn aktiviert)
+      if (includePlayoffs) {
+        promises.push(enhancedESPNApi.getPlayoffGames());
       }
-    } catch (error) {
-      console.error('❌ Error loading player data:', error);
-      setState(prev => ({
-        ...prev,
-        players: mockPlayers,
-        loading: false,
-        error: 'Failed to load live player data. Using cached data.',
-        lastUpdated: new Date()
-      }));
-    }
-  }, []);
-
-  const updateGames = useCallback(async () => {
-    try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
       
-      // Versuche Live-Spieldaten zu laden
-      const liveGames = await nflApiService.getCurrentGames();
-      
-      if (liveGames.length > 0) {
-        const currentGames = liveGames.filter(game => game.status !== 'completed');
-        const completedGames = liveGames.filter(game => game.status === 'completed');
-        
-        setState(prev => ({
-          ...prev,
-          todaysGames: currentGames.length > 0 ? currentGames : mockGames,
-          recentGames: completedGames.slice(0, 6),
-          loading: false,
-          lastUpdated: new Date()
-        }));
-        console.log('✅ Live game data loaded successfully');
-      } else {
-        // Fallback zu Mock-Daten
-        setState(prev => ({
-          ...prev,
-          todaysGames: mockGames,
-          recentGames: [],
-          loading: false,
-          lastUpdated: new Date()
-        }));
-        console.log('⚠️ Using mock game data as fallback');
+      // 3. Woche-spezifische Games (wenn Woche angegeben)
+      if (week) {
+        promises.push(enhancedESPNApi.getWeekGames(year, week));
       }
-    } catch (error) {
-      console.error('❌ Error loading game data:', error);
-      setState(prev => ({
-        ...prev,
-        todaysGames: mockGames,
-        recentGames: [],
-        loading: false,
-        error: 'Failed to load live game data. Using cached data.',
-        lastUpdated: new Date()
-      }));
-    }
-  }, []);
-
-  const updatePredictions = useCallback(async () => {
-    try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
       
-      // Generiere KI-Vorhersagen für aktuelle Spiele
-      const currentGames = state.todaysGames;
+      // 4. Player Leaders
+      promises.push(enhancedESPNApi.getPlayerLeaders('passingYards'));
+      promises.push(enhancedESPNApi.getPlayerLeaders('rushingYards'));
+      promises.push(enhancedESPNApi.getPlayerLeaders('receivingYards'));
       
-      if (currentGames.length > 0) {
-        const aiPredictions = await aiPredictionService.batchGeneratePredictions(currentGames);
-        
-        setState(prev => ({
-          ...prev,
-          predictions: aiPredictions.length > 0 ? aiPredictions : mockPredictions,
-          loading: false,
-          lastUpdated: new Date()
-        }));
-        console.log('✅ AI predictions generated successfully');
-      } else {
-        setState(prev => ({
-          ...prev,
-          predictions: mockPredictions,
-          loading: false,
-          lastUpdated: new Date()
-        }));
+      // 5. News (wenn aktiviert)
+      if (includeNews) {
+        promises.push(enhancedESPNApi.getNFLNews(10));
       }
-    } catch (error) {
-      console.error('❌ Error generating predictions:', error);
+      
+      // 6. Standings (wenn aktiviert)
+      if (includeStandings) {
+        promises.push(enhancedESPNApi.getStandings(year));
+      }
+
+      // Parallel laden für bessere Performance
+      console.log(`🏈 Loading NFL data with ${promises.length} API calls...`);
+      const results = await Promise.all(promises);
+      
+      let resultIndex = 0;
+      const liveGames = results[resultIndex++];
+      const playoffGames = includePlayoffs ? results[resultIndex++] : [];
+      const weekGames = week ? results[resultIndex++] : [];
+      const passingLeaders = results[resultIndex++];
+      const rushingLeaders = results[resultIndex++];
+      const receivingLeaders = results[resultIndex++];
+      const news = includeNews ? results[resultIndex++] : [];
+      const standings = includeStandings ? results[resultIndex++] : [];
+
+      // Prüfe ob Live-Spiele laufen
+      const hasLiveGames = liveGames.some((game: LiveGame) => 
+        game.status.type.includes('STATUS_IN_PROGRESS') || 
+        game.status.type.includes('STATUS_HALFTIME')
+      );
+
       setState(prev => ({
         ...prev,
-        predictions: mockPredictions,
+        liveGames,
+        playoffGames,
+        weekGames,
+        passingLeaders,
+        rushingLeaders,
+        receivingLeaders,
+        news,
+        standings,
         loading: false,
-        error: 'Failed to generate AI predictions. Using default predictions.',
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
+        isLive: hasLiveGames
       }));
-    }
-  }, [state.todaysGames]);
 
-  const refreshAllData = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      // Parallel loading für bessere Performance
-      await Promise.all([
-        updatePlayers(),
-        updateGames()
-      ]);
-      
-      // Predictions nach Games laden
-      setTimeout(() => {
-        updatePredictions();
-      }, 500);
-      
-    } catch (error) {
-      console.error('❌ Error refreshing data:', error);
+      console.log(`✅ NFL data loaded successfully:`, {
+        liveGames: liveGames.length,
+        playoffGames: playoffGames.length,
+        weekGames: weekGames.length,
+        passingLeaders: passingLeaders.length,
+        news: news.length,
+        isLive: hasLiveGames
+      });
+
+    } catch (error: any) {
+      console.error('❌ Error loading NFL data:', error);
       setState(prev => ({
         ...prev,
         loading: false,
-        error: 'Failed to refresh data. Some information may be outdated.'
+        error: error.message || 'Failed to load NFL data'
       }));
     }
-  }, [updatePlayers, updateGames, updatePredictions]);
+  }, [includePlayoffs, includeNews, includeStandings, week, year]);
 
-  const getTeamRoster = useCallback(async (teamId: string): Promise<Player[]> => {
-    try {
-      const roster = await nflApiService.getTeamRoster(teamId);
-      return roster.length > 0 ? roster : state.players.filter(p => p.teamId === teamId);
-    } catch (error) {
-      console.error(`❌ Error loading roster for team ${teamId}:`, error);
-      return state.players.filter(p => p.teamId === teamId);
-    }
-  }, [state.players]);
+  // Refresh-Funktion (manuell aufrufbar)
+  const refresh = useCallback(() => {
+    loadData();
+  }, [loadData]);
 
-  // Auto-refresh Daten alle 5 Minuten
+  // Auto-refresh Setup
   useEffect(() => {
     // Initial load
-    refreshAllData();
-    
-    // Setup auto-refresh
-    const interval = setInterval(() => {
-      refreshAllData();
-    }, 5 * 60 * 1000); // 5 Minuten
-    
-    return () => clearInterval(interval);
-  }, [refreshAllData]);
+    loadData();
 
-  // Update predictions wenn sich Spiele ändern
-  useEffect(() => {
-    if (state.todaysGames.length > 0 && !state.loading) {
-      const timer = setTimeout(() => {
-        updatePredictions();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+    if (!autoRefresh) return;
+
+    // Setup Auto-refresh
+    const interval = setInterval(() => {
+      console.log(`🔄 Auto-refreshing NFL data (${refreshInterval}s interval)`);
+      loadData();
+    }, refreshInterval * 1000);
+
+    return () => {
+      clearInterval(interval);
+      console.log('🛑 Auto-refresh stopped');
+    };
+  }, [loadData, autoRefresh, refreshInterval]);
+
+  // Spezielle Funktionen für einzelne Datentypen
+  const getGamesByStatus = useCallback((status: 'live' | 'scheduled' | 'completed') => {
+    const allGames = [...state.liveGames, ...state.playoffGames, ...state.weekGames];
+    
+    switch (status) {
+      case 'live':
+        return allGames.filter(game => 
+          game.status.type.includes('IN_PROGRESS') || 
+          game.status.type.includes('HALFTIME')
+        );
+      case 'scheduled':
+        return allGames.filter(game => 
+          game.status.type.includes('SCHEDULED') || 
+          game.status.type.includes('PRE')
+        );
+      case 'completed':
+        return allGames.filter(game => 
+          game.status.type.includes('FINAL') || 
+          game.status.type.includes('POST')
+        );
+      default:
+        return allGames;
     }
-  }, [state.todaysGames, state.loading, updatePredictions]);
+  }, [state.liveGames, state.playoffGames, state.weekGames]);
+
+  const getTodaysGames = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const allGames = [...state.liveGames, ...state.playoffGames, ...state.weekGames];
+    
+    return allGames.filter(game => 
+      game.date.startsWith(today)
+    );
+  }, [state.liveGames, state.playoffGames, state.weekGames]);
+
+  const getPlayerLeadersByPosition = useCallback((position: 'QB' | 'RB' | 'WR') => {
+    switch (position) {
+      case 'QB':
+        return state.passingLeaders;
+      case 'RB':
+        return state.rushingLeaders;
+      case 'WR':
+        return state.receivingLeaders;
+      default:
+        return [];
+    }
+  }, [state.passingLeaders, state.rushingLeaders, state.receivingLeaders]);
+
+  // Data Freshness Check
+  const isDataFresh = useCallback(() => {
+    if (!state.lastUpdated) return false;
+    const ageMinutes = (Date.now() - state.lastUpdated.getTime()) / (1000 * 60);
+    return ageMinutes < 2; // Fresh für 2 Minuten
+  }, [state.lastUpdated]);
+
+  const getDataAge = useCallback(() => {
+    if (!state.lastUpdated) return null;
+    return Math.floor((Date.now() - state.lastUpdated.getTime()) / 1000);
+  }, [state.lastUpdated]);
 
   return {
+    // Core State
     ...state,
-    refreshAllData,
-    updatePlayers,
-    updateGames,
-    updatePredictions,
-    getTeamRoster,
-    // Utility functions
-    isDataFresh: state.lastUpdated ? (Date.now() - state.lastUpdated.getTime()) < 5 * 60 * 1000 : false,
-    dataAge: state.lastUpdated ? Math.floor((Date.now() - state.lastUpdated.getTime()) / 60000) : null
+    
+    // Utility Functions
+    refresh,
+    getGamesByStatus,
+    getTodaysGames,
+    getPlayerLeadersByPosition,
+    isDataFresh: isDataFresh(),
+    dataAge: getDataAge(),
+    
+    // Convenient getters
+    todaysGames: getTodaysGames(),
+    liveActiveGames: getGamesByStatus('live'),
+    scheduledGames: getGamesByStatus('scheduled'),
+    completedGames: getGamesByStatus('completed'),
+    
+    // Stats
+    totalGames: state.liveGames.length + state.playoffGames.length + state.weekGames.length,
+    hasData: state.liveGames.length > 0 || state.playoffGames.length > 0
   };
 };
 
-// Custom Hook für Team-spezifische Daten
+// Spezieller Hook nur für Live-Scores (lightweight)
+export const useLiveScores = () => {
+  const [scores, setScores] = useState<LiveGame[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const loadScores = useCallback(async () => {
+    try {
+      const games = await enhancedESPNApi.getLiveGames();
+      setScores(games);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('❌ Error loading live scores:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadScores();
+    
+    // Schnellere Updates für Live-Scores (15 Sekunden)
+    const interval = setInterval(loadScores, 15000);
+    return () => clearInterval(interval);
+  }, [loadScores]);
+
+  return {
+    scores,
+    loading,
+    lastUpdated,
+    liveGames: scores.filter(game => 
+      game.status.type.includes('IN_PROGRESS') || 
+      game.status.type.includes('HALFTIME')
+    ),
+    refresh: loadScores
+  };
+};
+
+// Hook für Team-spezifische Daten
 export const useTeamData = (teamId: string) => {
-  const { players, getTeamRoster } = useNFLData();
-  const [teamPlayers, setTeamPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [teamData, setTeamData] = useState({
+    schedule: [] as LiveGame[],
+    injuries: [] as any[],
+    loading: true
+  });
 
   useEffect(() => {
     const loadTeamData = async () => {
-      setLoading(true);
       try {
-        const roster = await getTeamRoster(teamId);
-        setTeamPlayers(roster);
+        const [schedule, injuries] = await Promise.all([
+          enhancedESPNApi.getTeamSchedule(teamId),
+          enhancedESPNApi.getInjuryReport(teamId)
+        ]);
+
+        setTeamData({
+          schedule,
+          injuries,
+          loading: false
+        });
       } catch (error) {
-        console.error(`Error loading team data for ${teamId}:`, error);
-        setTeamPlayers(players.filter(p => p.teamId === teamId));
-      } finally {
-        setLoading(false);
+        console.error(`❌ Error loading team data for ${teamId}:`, error);
+        setTeamData(prev => ({ ...prev, loading: false }));
       }
     };
 
     if (teamId) {
       loadTeamData();
     }
-  }, [teamId, getTeamRoster, players]);
+  }, [teamId]);
 
-  return {
-    teamPlayers,
-    loading
-  };
+  return teamData;
 };
 
-// Custom Hook für Live-Game Updates
-export const useLiveGameUpdates = (gameId?: string) => {
-  const { todaysGames, updateGames } = useNFLData();
-  const [liveGame, setLiveGame] = useState<Game | null>(null);
+// Hook für NFL News
+export const useNFLNews = (limit: number = 10) => {
+  const [news, setNews] = useState<NFLNews[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (gameId) {
-      const game = todaysGames.find(g => g.id === gameId);
-      setLiveGame(game || null);
-      
-      // Setup live updates für laufende Spiele
-      if (game?.status === 'live') {
-        const interval = setInterval(() => {
-          updateGames();
-        }, 30000); // 30 Sekunden für Live-Spiele
-        
-        return () => clearInterval(interval);
+    const loadNews = async () => {
+      try {
+        const articles = await enhancedESPNApi.getNFLNews(limit);
+        setNews(articles);
+      } catch (error) {
+        console.error('❌ Error loading NFL news:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [gameId, todaysGames, updateGames]);
+    };
 
-  return {
-    liveGame,
-    isLive: liveGame?.status === 'live'
-  };
+    loadNews();
+    
+    // News alle 10 Minuten aktualisieren
+    const interval = setInterval(loadNews, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [limit]);
+
+  return { news, loading };
+};
+
+// Performance Monitoring Hook
+export const useAPIPerformance = () => {
+  const [stats, setStats] = useState({
+    cacheHits: 0,
+    apiCalls: 0,
+    avgResponseTime: 0,
+    errors: 0
+  });
+
+  useEffect(() => {
+    // Überwache API Performance
+    const checkStats = () => {
+      const cacheStats = enhancedESPNApi.getCacheStats();
+      setStats(prev => ({
+        ...prev,
+        cacheHits: cacheStats.size
+      }));
+    };
+
+    const interval = setInterval(checkStats, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return stats;
 };
