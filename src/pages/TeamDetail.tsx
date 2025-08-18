@@ -1,143 +1,83 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { teams, players } from '../data/mockData';
-import { ArrowLeft, Users, Calendar, Trophy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+// src/pages/TeamDetail.tsx
+import React from "react";
+import Layout from "../components/Layout";
+import { useParams, Link } from "react-router-dom";
+import { currentNflSeasonYear, fetchRoster, fetchTeams, Athlete, TeamBasic } from "../lib/espn";
 
-const TeamDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const team = teams.find(t => t.id === id);
-  const teamPlayers = players.filter(p => p.teamId === id);
+export default function TeamDetail() {
+  const { id } = useParams();               // ESPN numeric id
+  const [team, setTeam] = React.useState<TeamBasic | null>(null);
+  const [roster, setRoster] = React.useState<Athlete[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-  if (!team) {
-    return (
-      <div className="text-center text-white">
-        <h1 className="text-2xl font-bold">Team not found</h1>
-        <Link to="/teams" className="text-blue-400 hover:text-blue-300">
-          Back to Teams
-        </Link>
-      </div>
-    );
-  }
+  const year = currentNflSeasonYear();
 
-  const winPercentage = ((team.wins / (team.wins + team.losses + team.ties)) * 100).toFixed(1);
+  React.useEffect(() => {
+    if (!id) return;
+    (async () => {
+      try {
+        const teams = await fetchTeams();
+        const t = teams.find((x) => x.id === id) || null;
+        setTeam(t);
+        const r = await fetchRoster(id, year);
+        setRoster(r);
+      } catch (e: any) {
+        setError(e?.message || "Failed to load team/roster");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id, year]);
 
   return (
-    <div className="space-y-8">
-      {/* Back Button */}
-      <Link 
-        to="/teams" 
-        className="inline-flex items-center space-x-2 text-white/70 hover:text-white transition-colors"
-      >
-        <ArrowLeft size={20} />
-        <span>Back to Teams</span>
-      </Link>
+    <Layout>
+      <Link to="/teams" className="text-slate-300 underline">← Back to Teams</Link>
 
-      {/* Team Header */}
-      <div 
-        className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8"
-        style={{
-          background: `linear-gradient(135deg, ${team.primaryColor}30 0%, ${team.secondaryColor}20 100%)`
-        }}
-      >
-        <div className="flex items-center space-x-6">
-          <div className="text-8xl">{team.logo}</div>
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold text-white mb-2">
-              {team.city} {team.name}
-            </h1>
-            <div className="flex items-center space-x-6 text-white/70">
-              <span>{team.conference} • {team.division}</span>
-              <span className="font-bold text-white">
-                {team.wins}-{team.losses}{team.ties > 0 && `-${team.ties}`}
-              </span>
-              <span>{winPercentage}% Win Rate</span>
-            </div>
+      {loading && <div className="mt-4 text-slate-300">Loading roster…</div>}
+      {error && <div className="mt-4 text-red-400">{error}</div>}
+
+      {team && (
+        <div className="mt-4 flex items-center gap-4">
+          <img src={team.logo} alt={`${team.display} logo`} className="h-14 w-14 object-contain" />
+          <div>
+            <h1 className="text-2xl font-bold">{team.city} {team.name}</h1>
+            <p className="text-slate-300">{team.abbr} · Season {year}</p>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Team Stats */}
-        <div className="lg:col-span-1">
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <Trophy className="text-yellow-400" size={20} />
-              <h3 className="text-white font-bold text-lg">Season Stats</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-white/70">Wins</span>
-                <span className="text-white font-bold">{team.wins}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Losses</span>
-                <span className="text-white font-bold">{team.losses}</span>
-              </div>
-              {team.ties > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-white/70">Ties</span>
-                  <span className="text-white font-bold">{team.ties}</span>
-                </div>
-              )}
-              <div className="flex justify-between pt-2 border-t border-white/20">
-                <span className="text-white/70">Win %</span>
-                <span className="text-white font-bold">{winPercentage}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Division</span>
-                <span className="text-white font-bold">{team.division.replace(`${team.conference} `, '')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Roster */}
-        <div className="lg:col-span-2">
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <Users className="text-blue-400" size={20} />
-              <h3 className="text-white font-bold text-lg">Key Players</h3>
-            </div>
-            {teamPlayers.length > 0 ? (
-              <div className="space-y-4">
-                {teamPlayers.map((player) => (
-                  <div key={player.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-white/70 font-mono text-sm min-w-[24px]">
-                        #{player.number}
-                      </div>
-                      <div>
-                        <div className="text-white font-bold">{player.name}</div>
-                        <div className="text-white/70 text-sm">{player.position}</div>
-                      </div>
-                    </div>
-                    <div className="text-right text-sm">
-                      {player.passingYards && (
-                        <div className="text-white">
-                          <span className="text-white/70">Passing:</span> {player.passingYards.toLocaleString()} yds
-                        </div>
-                      )}
-                      {player.rushingYards && (
-                        <div className="text-white">
-                          <span className="text-white/70">Rushing:</span> {player.rushingYards.toLocaleString()} yds
-                        </div>
-                      )}
-                      <div className="text-white">
-                        <span className="text-white/70">TDs:</span> {player.touchdowns}
-                      </div>
-                    </div>
-                  </div>
+      {!loading && roster.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold mb-3">Roster ({roster.length})</h2>
+          <div className="overflow-x-auto rounded-xl border border-slate-700">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-800 text-slate-200">
+                <tr>
+                  <th className="text-left px-4 py-2">#</th>
+                  <th className="text-left px-4 py-2">Player</th>
+                  <th className="text-left px-4 py-2">Pos</th>
+                  <th className="text-left px-4 py-2">Age</th>
+                  <th className="text-left px-4 py-2">Ht</th>
+                  <th className="text-left px-4 py-2">Wt</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {roster.map((p) => (
+                  <tr key={p.id} className="bg-slate-900/60 hover:bg-slate-900">
+                    <td className="px-4 py-2">{p.jersey || "-"}</td>
+                    <td className="px-4 py-2">{p.fullName}</td>
+                    <td className="px-4 py-2">{p.position || "-"}</td>
+                    <td className="px-4 py-2">{p.age ?? "-"}</td>
+                    <td className="px-4 py-2">{p.height ?? "-"}</td>
+                    <td className="px-4 py-2">{p.weight ?? "-"}</td>
+                  </tr>
                 ))}
-              </div>
-            ) : (
-              <p className="text-white/70">No player data available</p>
-            )}
+              </tbody>
+            </table>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
+      )}
+    </Layout>
   );
-};
-
-export default TeamDetail;
+}

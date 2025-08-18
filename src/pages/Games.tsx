@@ -1,69 +1,54 @@
-import React from 'react';
-import GameCard from '../components/GameCard';
-import { todaysGames, recentGames } from '../data/mockData';
-import { Calendar, Clock, CheckCircle } from 'lucide-react';
+// src/pages/Games.tsx
+import React from "react";
+import Layout from "../components/Layout";
+import { fetchTodayScoreboard } from "../lib/espn";
 
-const Games: React.FC = () => {
+export default function Games() {
+  const [events, setEvents] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const data = await fetchTodayScoreboard();
+        setEvents(data?.events ?? []);
+      } catch (e: any) {
+        setError(e?.message || "Failed to load games");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          <Calendar className="text-blue-400" size={32} />
-          <h1 className="text-4xl font-bold text-white">NFL Games</h1>
-        </div>
-        <p className="text-white/70 text-lg">
-          Upcoming matchups, recent results, and game predictions
-        </p>
+    <Layout>
+      <h1 className="text-2xl font-bold mb-4">Games (Today)</h1>
+
+      {loading && <div className="text-slate-300">Loading…</div>}
+      {error && <div className="text-red-400">{error}</div>}
+
+      <div className="space-y-3">
+        {events.map((e) => {
+          const c = e.competitions?.[0];
+          const home = c?.competitors?.find((x: any) => x.homeAway === "home");
+          const away = c?.competitors?.find((x: any) => x.homeAway === "away");
+          return (
+            <div key={e.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+              <div className="text-slate-300 text-sm mb-1">{e.status?.type?.shortDetail}</div>
+              <div className="flex justify-between">
+                <div className="truncate">{away?.team?.displayName}</div>
+                <div className="text-slate-500 px-2">@</div>
+                <div className="truncate text-right">{home?.team?.displayName}</div>
+              </div>
+              <div className="text-xs text-slate-400 mt-2">{new Date(e.date).toLocaleString()} · {c?.venue?.fullName}</div>
+            </div>
+          );
+        })}
+        {!loading && !error && events.length === 0 && (
+          <div className="text-slate-300">No games today.</div>
+        )}
       </div>
-
-      {/* Upcoming Games */}
-      <section>
-        <div className="flex items-center space-x-2 mb-6">
-          <Clock className="text-blue-400" size={24} />
-          <h2 className="text-2xl font-bold text-white">Upcoming Games</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {todaysGames.map((game) => (
-            <GameCard key={game.id} game={game} showPrediction />
-          ))}
-        </div>
-      </section>
-
-      {/* Recent Results */}
-      <section>
-        <div className="flex items-center space-x-2 mb-6">
-          <CheckCircle className="text-green-400" size={24} />
-          <h2 className="text-2xl font-bold text-white">Recent Results</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {recentGames.map((game) => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
-      </section>
-
-      {/* Week Navigation */}
-      <section>
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-          <h3 className="text-white font-bold text-lg mb-4">Navigate by Week</h3>
-          <div className="grid grid-cols-6 md:grid-cols-9 lg:grid-cols-18 gap-2">
-            {Array.from({ length: 18 }, (_, i) => i + 1).map((week) => (
-              <button
-                key={week}
-                className={`p-2 rounded-lg transition-all duration-200 ${
-                  week === 19
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
-                }`}
-              >
-                W{week}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+    </Layout>
   );
-};
-
-export default Games;
+}

@@ -1,85 +1,38 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Calendar, BarChart3, Brain } from 'lucide-react';
+// src/components/Layout.tsx
+import { Link, NavLink } from "react-router-dom";
+import React from "react";
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
-
-  const navItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/teams', icon: Users, label: 'Teams' },
-    { path: '/games', icon: Calendar, label: 'Games' },
-    { path: '/stats', icon: BarChart3, label: 'Stats' },
-    { path: '/predictions', icon: Brain, label: 'Predictions' }
-  ];
-
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      {/* Header */}
-      <header className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <div className="text-2xl">🏈</div>
-              <h1 className="text-xl font-bold text-white">NFL Analytics</h1>
-            </div>
-            
-            <nav className="hidden md:flex space-x-8">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    <Icon size={18} />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100">
+      <header className="sticky top-0 z-30 backdrop-blur bg-slate-900/70 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2 font-semibold">
+            <img src="/teams/nfl.png" alt="NFL" className="h-6 w-6 object-contain" />
+            <span>NFL Analytics</span>
+          </Link>
+          <nav className="ml-auto flex items-center gap-2 text-sm">
+            {[
+              { to: "/", label: "Dashboard" },
+              { to: "/teams", label: "Teams" },
+              { to: "/games", label: "Games" },
+              { to: "/stats", label: "Stats" },
+              { to: "/predictions", label: "Predictions" },
+            ].map((i) => (
+              <NavLink
+                key={i.to}
+                to={i.to}
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-md ${isActive ? "bg-slate-700 text-white" : "text-slate-300 hover:bg-slate-800"}`
+                }
+              >
+                {i.label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
       </header>
-
-      {/* Mobile Navigation */}
-      <nav className="md:hidden bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex justify-around py-3">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex flex-col items-center space-y-1 px-2 py-1 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <Icon size={16} />
-                  <span className="text-xs font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 py-6">{children}</main>
     </div>
   );
-};
-
-export default Layout;
+}

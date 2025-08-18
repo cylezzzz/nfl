@@ -1,77 +1,91 @@
-import React from 'react';
-import StatTable from '../components/StatTable';
-import { players } from '../data/mockData';
-import { BarChart3, TrendingUp } from 'lucide-react';
+// src/pages/Stats.tsx
+import React from "react";
+import Layout from "../components/Layout";
+import { currentNflSeasonYear, fetchLeaders } from "../lib/espn";
 
-const Stats: React.FC = () => {
-  return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          <BarChart3 className="text-green-400" size={32} />
-          <h1 className="text-4xl font-bold text-white">NFL Statistics</h1>
-        </div>
-        <p className="text-white/70 text-lg">
-          Leading player statistics and performance metrics across the league
-        </p>
+type Row = { rank: number; name: string; team?: string; stat?: number; extra?: any };
+
+async function getCategory(category: string) {
+  const year = currentNflSeasonYear();
+  const json = await fetchLeaders(year, category);
+  // Struktur variiert. Wir extrahieren die Top 10 generisch:
+  const cats = json?.categories ?? [];
+  const first = cats[0];
+  const leaders = first?.leaders?.[0]?.leaders ?? [];
+  const rows: Row[] = leaders.slice(0, 10).map((l: any, idx: number) => ({
+    rank: idx + 1,
+    name: l?.athlete?.displayName,
+    team: l?.team?.abbreviation,
+    stat: l?.statValue ?? l?.value ?? l?.displayValue,
+  }));
+  return rows;
+}
+
+export default function Stats() {
+  const [pass, setPass] = React.useState<Row[]>([]);
+  const [rush, setRush] = React.useState<Row[]>([]);
+  const [recv, setRecv] = React.useState<Row[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const [p, r, rc] = await Promise.all([
+          getCategory("passingYards"),
+          getCategory("rushingYards"),
+          getCategory("receivingYards"),
+        ]);
+        setPass(p); setRush(r); setRecv(rc);
+      } catch (e: any) {
+        setError(e?.message || "Failed to load leaders");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const Board = ({ title, rows }: { title: string; rows: Row[] }) => (
+    <section className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+      <h3 className="font-semibold mb-3">{title}</h3>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-slate-800 text-slate-200">
+            <tr>
+              <th className="text-left px-3 py-2">Rank</th>
+              <th className="text-left px-3 py-2">Player</th>
+              <th className="text-left px-3 py-2">Team</th>
+              <th className="text-right px-3 py-2">Value</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {rows.map((r) => (
+              <tr key={`${title}-${r.rank}`} className="bg-slate-900/60 hover:bg-slate-900">
+                <td className="px-3 py-2">{r.rank}</td>
+                <td className="px-3 py-2">{r.name}</td>
+                <td className="px-3 py-2">{r.team ?? "-"}</td>
+                <td className="px-3 py-2 text-right">{r.stat ?? "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {/* Season Leaders */}
-      <section>
-        <div className="flex items-center space-x-2 mb-6">
-          <TrendingUp className="text-yellow-400" size={24} />
-          <h2 className="text-2xl font-bold text-white">Season Leaders</h2>
-        </div>
-        
-        <div className="space-y-8">
-          <StatTable 
-            players={players}
-            statType="passing"
-            title="Passing Yards Leaders"
-          />
-          <StatTable 
-            players={players}
-            statType="rushing"
-            title="Rushing Yards Leaders"
-          />
-          <StatTable 
-            players={players}
-            statType="receiving"
-            title="Receiving Yards Leaders"
-          />
-        </div>
-      </section>
-
-      {/* Filter Options */}
-      <section>
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
-          <h3 className="text-white font-bold text-lg mb-4">Filter Statistics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="2024" className="bg-slate-800">2024 Season</option>
-              <option value="2023" className="bg-slate-800">2023 Season</option>
-            </select>
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all" className="bg-slate-800">All Weeks</option>
-              <option value="1" className="bg-slate-800">Week 1</option>
-              <option value="2" className="bg-slate-800">Week 2</option>
-            </select>
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all" className="bg-slate-800">All Positions</option>
-              <option value="QB" className="bg-slate-800">Quarterback</option>
-              <option value="RB" className="bg-slate-800">Running Back</option>
-              <option value="WR" className="bg-slate-800">Wide Receiver</option>
-            </select>
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all" className="bg-slate-800">All Teams</option>
-              <option value="afc" className="bg-slate-800">AFC</option>
-              <option value="nfc" className="bg-slate-800">NFC</option>
-            </select>
-          </div>
-        </div>
-      </section>
-    </div>
+    </section>
   );
-};
 
-export default Stats;
+  return (
+    <Layout>
+      <h1 className="text-2xl font-bold mb-4">Season Leaders ({currentNflSeasonYear()})</h1>
+      {loading && <div className="text-slate-300">Loading leaders…</div>}
+      {error && <div className="text-red-400">{error}</div>}
+
+      {!loading && !error && (
+        <div className="grid grid-cols-1 gap-4">
+          <Board title="Passing Yards Leaders" rows={pass} />
+          <Board title="Rushing Yards Leaders" rows={rush} />
+          <Board title="Receiving Yards Leaders" rows={recv} />
+        </div>
+      )}
+    </Layout>
+  );
+}

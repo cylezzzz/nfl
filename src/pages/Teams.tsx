@@ -1,53 +1,60 @@
-import React from 'react';
-import TeamCard from '../components/TeamCard';
-import { teams } from '../data/mockData';
-import { Users } from 'lucide-react';
+// src/pages/Teams.tsx
+import React from "react";
+import Layout from "../components/Layout";
+import { fetchTeams, TeamBasic } from "../lib/espn";
+import { Link } from "react-router-dom";
 
-const Teams: React.FC = () => {
-  const afcTeams = teams.filter(team => team.conference === 'AFC');
-  const nfcTeams = teams.filter(team => team.conference === 'NFC');
+export default function Teams() {
+  const [teams, setTeams] = React.useState<TeamBasic[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const list = await fetchTeams();
+        setTeams(list);
+      } catch (e: any) {
+        setError(e?.message || "Failed to load teams");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          <Users className="text-blue-400" size={32} />
-          <h1 className="text-4xl font-bold text-white">NFL Teams</h1>
-        </div>
-        <p className="text-white/70 text-lg">
-          Explore all 32 NFL teams, their records, and divisional standings
-        </p>
-      </div>
+    <Layout>
+      <h1 className="text-2xl font-bold mb-1">NFL Teams</h1>
+      <p className="text-slate-300 mb-6">Explore all 32 NFL teams for the current season.</p>
 
-      {/* AFC Conference */}
-      <section>
-        <h2 className="text-2xl font-bold text-white mb-6">
-          <span className="bg-gradient-to-r from-red-500 to-red-400 bg-clip-text text-transparent">
-            AFC Conference
-          </span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {afcTeams.map((team) => (
-            <TeamCard key={team.id} team={team} />
+      {loading && <div className="text-slate-300">Loading teams…</div>}
+      {error && <div className="text-red-400">{error}</div>}
+
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          {teams.map((t) => (
+            <Link
+              key={t.id}
+              to={`/teams/${t.id}`}
+              className="rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 p-4 flex items-center gap-3 transition"
+            >
+              <img
+                src={t.logo}
+                alt={`${t.display} logo`}
+                className="h-10 w-10 object-contain"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src =
+                    `https://a.espncdn.com/i/teamlogos/nfl/500/${t.abbr.toLowerCase()}.png`;
+                }}
+              />
+              <div>
+                <div className="font-semibold">{t.city} {t.name}</div>
+                <div className="text-xs text-slate-300">{t.abbr}</div>
+              </div>
+            </Link>
           ))}
         </div>
-      </section>
-
-      {/* NFC Conference */}
-      <section>
-        <h2 className="text-2xl font-bold text-white mb-6">
-          <span className="bg-gradient-to-r from-blue-500 to-blue-400 bg-clip-text text-transparent">
-            NFC Conference
-          </span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {nfcTeams.map((team) => (
-            <TeamCard key={team.id} team={team} />
-          ))}
-        </div>
-      </section>
-    </div>
+      )}
+    </Layout>
   );
-};
-
-export default Teams;
+}
