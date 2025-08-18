@@ -1,3 +1,4 @@
+// src/components/Layout.tsx - Updated for 2025/26 Season
 import { Link, NavLink, useLocation } from "react-router-dom";
 import React from "react";
 import { 
@@ -50,7 +51,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [location.pathname]);
 
   const navigationItems = [
-    { to: "/", label: "Dashboard", icon: Home, description: "Playoff Overview" },
+    { to: "/", label: "Dashboard", icon: Home, description: "Season Overview" },
     { to: "/live", label: "Live", icon: Zap, description: "Real-time Data", isLive: true },
     { to: "/teams", label: "Teams", icon: Users, description: "32 NFL Teams" },
     { to: "/games", label: "Games", icon: Calendar, description: "Schedule & Results" },
@@ -111,7 +112,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <span className="font-bold text-lg bg-gradient-to-r from-blue-400 to-red-400 bg-clip-text text-transparent">
                   NFL Analytics
                 </span>
-                <div className="text-xs text-slate-400">2024/25 Season</div>
+                <div className="text-xs text-slate-400">2025/26 Season</div>
               </div>
             </Link>
 
@@ -262,7 +263,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
               <p className="text-slate-400 text-sm leading-relaxed max-w-md">
                 Your ultimate destination for NFL insights, predictions, and statistics. 
-                Powered by advanced AI and real-time data from the 2024/25 season.
+                Powered by advanced AI and real-time data from the 2025/26 season.
               </p>
             </div>
 
@@ -290,11 +291,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <ul className="space-y-2 text-sm text-slate-400">
                 <li className="flex items-center space-x-2">
                   <TrendingUp size={14} />
-                  <span>2024/25 NFL Season</span>
+                  <span>2025/26 NFL Season</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Zap size={14} />
-                  <span>Playoff Games Live</span>
+                  <span>Regular Season</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <Users size={14} />
