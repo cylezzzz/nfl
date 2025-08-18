@@ -47,25 +47,25 @@ const Stats: React.FC = () => {
         <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6">
           <h3 className="text-white font-bold text-lg mb-4">Filter Statistics</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white">
-              <option value="2024">2024 Season</option>
-              <option value="2023">2023 Season</option>
+            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="2024" className="bg-slate-800">2024 Season</option>
+              <option value="2023" className="bg-slate-800">2023 Season</option>
             </select>
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white">
-              <option value="all">All Weeks</option>
-              <option value="1">Week 1</option>
-              <option value="2">Week 2</option>
+            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all" className="bg-slate-800">All Weeks</option>
+              <option value="1" className="bg-slate-800">Week 1</option>
+              <option value="2" className="bg-slate-800">Week 2</option>
             </select>
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white">
-              <option value="all">All Positions</option>
-              <option value="QB">Quarterback</option>
-              <option value="RB">Running Back</option>
-              <option value="WR">Wide Receiver</option>
+            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all" className="bg-slate-800">All Positions</option>
+              <option value="QB" className="bg-slate-800">Quarterback</option>
+              <option value="RB" className="bg-slate-800">Running Back</option>
+              <option value="WR" className="bg-slate-800">Wide Receiver</option>
             </select>
-            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white">
-              <option value="all">All Teams</option>
-              <option value="afc">AFC</option>
-              <option value="nfc">NFC</option>
+            <select className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all" className="bg-slate-800">All Teams</option>
+              <option value="afc" className="bg-slate-800">AFC</option>
+              <option value="nfc" className="bg-slate-800">NFC</option>
             </select>
           </div>
         </div>
