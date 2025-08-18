@@ -1,6 +1,7 @@
+// src/data/mockData.ts - Updated for 2025/26 NFL Season
 import { Team, Player, Game, Prediction } from '../types';
 
-// NFL Saison 2024/25 - Aktuelle Playoff-Standings (Januar 2025)
+// NFL Saison 2025/26 - Early Season Standings (September 2025)
 export const teams: Team[] = [
   // --- AFC East ---
   {
@@ -13,7 +14,7 @@ export const teams: Team[] = [
     primaryColor: '#00338D',
     secondaryColor: '#C60C30',
     logo: '/teams/BUF.png',
-    wins: 13, losses: 4, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'mia',
@@ -25,7 +26,7 @@ export const teams: Team[] = [
     primaryColor: '#008E97',
     secondaryColor: '#FC4C02',
     logo: '/teams/MIA.png',
-    wins: 8, losses: 9, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'ne',
@@ -37,7 +38,7 @@ export const teams: Team[] = [
     primaryColor: '#002244',
     secondaryColor: '#C60C30',
     logo: '/teams/NE.png',
-    wins: 4, losses: 13, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'nyj',
@@ -49,7 +50,7 @@ export const teams: Team[] = [
     primaryColor: '#125740',
     secondaryColor: '#000000',
     logo: '/teams/NYJ.png',
-    wins: 5, losses: 12, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
 
   // --- AFC North ---
@@ -63,7 +64,7 @@ export const teams: Team[] = [
     primaryColor: '#241773',
     secondaryColor: '#000000',
     logo: '/teams/BAL.png',
-    wins: 12, losses: 5, ties: 0
+    wins: 3, losses: 0, ties: 0
   },
   {
     id: 'cin',
@@ -75,7 +76,7 @@ export const teams: Team[] = [
     primaryColor: '#FB4F14',
     secondaryColor: '#000000',
     logo: '/teams/CIN.png',
-    wins: 9, losses: 8, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'cle',
@@ -87,7 +88,7 @@ export const teams: Team[] = [
     primaryColor: '#311D00',
     secondaryColor: '#FF3C00',
     logo: '/teams/CLE.png',
-    wins: 3, losses: 14, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'pit',
@@ -99,7 +100,7 @@ export const teams: Team[] = [
     primaryColor: '#FFB612',
     secondaryColor: '#101820',
     logo: '/teams/PIT.png',
-    wins: 10, losses: 7, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
 
   // --- AFC South ---
@@ -113,7 +114,7 @@ export const teams: Team[] = [
     primaryColor: '#03202F',
     secondaryColor: '#A71930',
     logo: '/teams/HOU.png',
-    wins: 10, losses: 7, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'ind',
@@ -125,7 +126,7 @@ export const teams: Team[] = [
     primaryColor: '#002C5F',
     secondaryColor: '#A2AAAD',
     logo: '/teams/IND.png',
-    wins: 8, losses: 9, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'jax',
@@ -137,7 +138,7 @@ export const teams: Team[] = [
     primaryColor: '#006778',
     secondaryColor: '#D7A22A',
     logo: '/teams/JAX.png',
-    wins: 4, losses: 13, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'ten',
@@ -149,7 +150,7 @@ export const teams: Team[] = [
     primaryColor: '#4B92DB',
     secondaryColor: '#002244',
     logo: '/teams/TEN.png',
-    wins: 3, losses: 14, ties: 0
+    wins: 0, losses: 3, ties: 0
   },
 
   // --- AFC West ---
@@ -163,7 +164,7 @@ export const teams: Team[] = [
     primaryColor: '#FB4F14',
     secondaryColor: '#002244',
     logo: '/teams/DEN.png',
-    wins: 10, losses: 7, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'kc',
@@ -175,7 +176,7 @@ export const teams: Team[] = [
     primaryColor: '#E31837',
     secondaryColor: '#FFB612',
     logo: '/teams/KC.png',
-    wins: 15, losses: 2, ties: 0
+    wins: 3, losses: 0, ties: 0
   },
   {
     id: 'lv',
@@ -187,7 +188,7 @@ export const teams: Team[] = [
     primaryColor: '#000000',
     secondaryColor: '#A5ACAF',
     logo: '/teams/LV.png',
-    wins: 4, losses: 13, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'lac',
@@ -199,7 +200,7 @@ export const teams: Team[] = [
     primaryColor: '#0080C6',
     secondaryColor: '#FFC20E',
     logo: '/teams/LAC.png',
-    wins: 11, losses: 6, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
 
   // --- NFC East ---
@@ -213,7 +214,7 @@ export const teams: Team[] = [
     primaryColor: '#003594',
     secondaryColor: '#869397',
     logo: '/teams/DAL.png',
-    wins: 7, losses: 10, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'nyg',
@@ -225,7 +226,7 @@ export const teams: Team[] = [
     primaryColor: '#0B2265',
     secondaryColor: '#A71930',
     logo: '/teams/NYG.png',
-    wins: 3, losses: 14, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'phi',
@@ -237,7 +238,7 @@ export const teams: Team[] = [
     primaryColor: '#004C54',
     secondaryColor: '#A5ACAF',
     logo: '/teams/PHI.png',
-    wins: 14, losses: 3, ties: 0
+    wins: 3, losses: 0, ties: 0
   },
   {
     id: 'was',
@@ -249,7 +250,7 @@ export const teams: Team[] = [
     primaryColor: '#773141',
     secondaryColor: '#FFB612',
     logo: '/teams/WAS.png',
-    wins: 12, losses: 5, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
 
   // --- NFC North ---
@@ -263,7 +264,7 @@ export const teams: Team[] = [
     primaryColor: '#0B162A',
     secondaryColor: '#C83803',
     logo: '/teams/CHI.png',
-    wins: 5, losses: 12, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'det',
@@ -275,7 +276,7 @@ export const teams: Team[] = [
     primaryColor: '#0076B6',
     secondaryColor: '#B0B7BC',
     logo: '/teams/DET.png',
-    wins: 15, losses: 2, ties: 0
+    wins: 3, losses: 0, ties: 0
   },
   {
     id: 'gb',
@@ -287,7 +288,7 @@ export const teams: Team[] = [
     primaryColor: '#203731',
     secondaryColor: '#FFB612',
     logo: '/teams/GB.png',
-    wins: 11, losses: 6, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'min',
@@ -299,7 +300,7 @@ export const teams: Team[] = [
     primaryColor: '#4F2683',
     secondaryColor: '#FFC62F',
     logo: '/teams/MIN.png',
-    wins: 14, losses: 3, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
 
   // --- NFC South ---
@@ -313,7 +314,7 @@ export const teams: Team[] = [
     primaryColor: '#A71930',
     secondaryColor: '#000000',
     logo: '/teams/ATL.png',
-    wins: 8, losses: 9, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'car',
@@ -325,7 +326,7 @@ export const teams: Team[] = [
     primaryColor: '#0085CA',
     secondaryColor: '#101820',
     logo: '/teams/CAR.png',
-    wins: 5, losses: 12, ties: 0
+    wins: 0, losses: 3, ties: 0
   },
   {
     id: 'no',
@@ -337,7 +338,7 @@ export const teams: Team[] = [
     primaryColor: '#D3BC8D',
     secondaryColor: '#101820',
     logo: '/teams/NO.png',
-    wins: 5, losses: 12, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'tb',
@@ -349,7 +350,7 @@ export const teams: Team[] = [
     primaryColor: '#D50A0A',
     secondaryColor: '#34302B',
     logo: '/teams/TB.png',
-    wins: 10, losses: 7, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
 
   // --- NFC West ---
@@ -363,7 +364,7 @@ export const teams: Team[] = [
     primaryColor: '#97233F',
     secondaryColor: '#000000',
     logo: '/teams/ARI.png',
-    wins: 8, losses: 9, ties: 0
+    wins: 1, losses: 2, ties: 0
   },
   {
     id: 'lar',
@@ -375,7 +376,7 @@ export const teams: Team[] = [
     primaryColor: '#003594',
     secondaryColor: '#FFA300',
     logo: '/teams/LAR.png',
-    wins: 10, losses: 7, ties: 0
+    wins: 2, losses: 1, ties: 0
   },
   {
     id: 'sf',
@@ -387,7 +388,7 @@ export const teams: Team[] = [
     primaryColor: '#AA0000',
     secondaryColor: '#B3995D',
     logo: '/teams/SF.png',
-    wins: 6, losses: 11, ties: 0
+    wins: 3, losses: 0, ties: 0
   },
   {
     id: 'sea',
@@ -399,440 +400,335 @@ export const teams: Team[] = [
     primaryColor: '#002244',
     secondaryColor: '#69BE28',
     logo: '/teams/SEA.png',
-    wins: 10, losses: 7, ties: 0
+    wins: 2, losses: 1, ties: 0
   }
 ];
 
 // Helper function to get team by ID
 const getTeam = (id: string) => teams.find(t => t.id === id)!;
 
-// NFL Saison 2024/25 Star Players
+// NFL Saison 2025/26 Star Players - Updated Rosters
 export const players: Player[] = [
-  // Quarterbacks - 2024/25 Season Leaders
+  // Quarterbacks - 2025/26 Season
   {
-    id: 'allen2025',
+    id: 'allen2026',
     name: 'Josh Allen',
     position: 'QB',
     number: 17,
     teamId: 'buf',
-    passingYards: 4306,
-    rushingYards: 523,
-    touchdowns: 43
+    passingYards: 412,
+    rushingYards: 67,
+    touchdowns: 5
   },
   {
-    id: 'jackson2025',
+    id: 'jackson2026',
     name: 'Lamar Jackson',
     position: 'QB',
     number: 8,
     teamId: 'bal',
-    passingYards: 3678,
-    rushingYards: 915,
-    touchdowns: 44
+    passingYards: 389,
+    rushingYards: 98,
+    touchdowns: 6
   },
   {
-    id: 'goff2025',
+    id: 'goff2026',
     name: 'Jared Goff',
     position: 'QB',
     number: 16,
     teamId: 'det',
-    passingYards: 4629,
-    touchdowns: 37
+    passingYards: 445,
+    touchdowns: 4
   },
   {
-    id: 'mahomes2025',
+    id: 'mahomes2026',
     name: 'Patrick Mahomes',
     position: 'QB',
     number: 15,
     teamId: 'kc',
-    passingYards: 3928,
-    touchdowns: 26
+    passingYards: 423,
+    touchdowns: 5
   },
   {
-    id: 'hurts2025',
+    id: 'hurts2026',
     name: 'Jalen Hurts',
     position: 'QB',
     number: 1,
     teamId: 'phi',
-    passingYards: 3858,
-    rushingYards: 630,
-    touchdowns: 29
+    passingYards: 378,
+    rushingYards: 89,
+    touchdowns: 4
   },
   {
-    id: 'daniels2025',
-    name: 'Jayden Daniels',
+    id: 'purdy2026',
+    name: 'Brock Purdy',
     position: 'QB',
-    number: 5,
-    teamId: 'was',
-    passingYards: 3568,
-    rushingYards: 891,
-    touchdowns: 31
-  },
-  {
-    id: 'darnold2025',
-    name: 'Sam Darnold',
-    position: 'QB',
-    number: 14,
-    teamId: 'min',
-    passingYards: 4319,
-    touchdowns: 35
+    number: 13,
+    teamId: 'sf',
+    passingYards: 456,
+    touchdowns: 6
   },
 
-  // Running Backs - 2024/25 Season
+  // Running Backs - 2025/26 Season
   {
-    id: 'barkley2025',
+    id: 'barkley2026',
     name: 'Saquon Barkley',
     position: 'RB',
     number: 26,
     teamId: 'phi',
-    rushingYards: 2005,
-    receivingYards: 278,
-    touchdowns: 15
+    rushingYards: 234,
+    receivingYards: 67,
+    touchdowns: 3
   },
   {
-    id: 'henry2025',
+    id: 'henry2026',
     name: 'Derrick Henry',
     position: 'RB',
     number: 22,
     teamId: 'bal',
-    rushingYards: 1921,
-    touchdowns: 16
+    rushingYards: 198,
+    touchdowns: 2
   },
   {
-    id: 'gibbs2025',
+    id: 'gibbs2026',
     name: 'Jahmyr Gibbs',
     position: 'RB',
     number: 26,
     teamId: 'det',
-    rushingYards: 1412,
-    receivingYards: 516,
-    touchdowns: 20
-  },
-  {
-    id: 'robinson2025',
-    name: 'Brian Robinson Jr.',
-    position: 'RB',
-    number: 8,
-    teamId: 'was',
-    rushingYards: 1343,
-    touchdowns: 8
-  },
-  {
-    id: 'mixon2025',
-    name: 'Joe Mixon',
-    position: 'RB',
-    number: 28,
-    teamId: 'hou',
-    rushingYards: 1426,
-    touchdowns: 11
+    rushingYards: 189,
+    receivingYards: 78,
+    touchdowns: 2
   },
 
-  // Wide Receivers - 2024/25 Season
+  // Wide Receivers - 2025/26 Season
   {
-    id: 'chase2025',
+    id: 'chase2026',
     name: 'Ja\'Marr Chase',
     position: 'WR',
     number: 1,
     teamId: 'cin',
-    receivingYards: 1708,
-    touchdowns: 16
+    receivingYards: 267,
+    touchdowns: 3
   },
   {
-    id: 'jefferson2025',
+    id: 'jefferson2026',
     name: 'Justin Jefferson',
     position: 'WR',
     number: 18,
     teamId: 'min',
-    receivingYards: 1533,
-    touchdowns: 10
+    receivingYards: 245,
+    touchdowns: 2
   },
   {
-    id: 'stgermain2025',
+    id: 'stbrown2026',
     name: 'Amon-Ra St. Brown',
     position: 'WR',
     number: 14,
     teamId: 'det',
-    receivingYards: 1263,
-    touchdowns: 12
+    receivingYards: 223,
+    touchdowns: 2
   },
   {
-    id: 'adams2025',
-    name: 'Davante Adams',
+    id: 'deebo2026',
+    name: 'Deebo Samuel',
     position: 'WR',
-    number: 17,
-    teamId: 'nyj',
-    receivingYards: 1243,
-    touchdowns: 8
-  },
-  {
-    id: 'mclaurin2025',
-    name: 'Terry McLaurin',
-    position: 'WR',
-    number: 17,
-    teamId: 'was',
-    receivingYards: 1096,
-    touchdowns: 13
-  },
-  {
-    id: 'hopkins2025',
-    name: 'DeAndre Hopkins',
-    position: 'WR',
-    number: 10,
-    teamId: 'kc',
-    receivingYards: 1057,
-    touchdowns: 8
+    number: 19,
+    teamId: 'sf',
+    receivingYards: 234,
+    touchdowns: 3
   },
 
   // Tight Ends
   {
-    id: 'laporta2025',
-    name: 'Sam LaPorta',
-    position: 'TE',
-    number: 87,
-    teamId: 'det',
-    receivingYards: 889,
-    touchdowns: 9
-  },
-  {
-    id: 'kelce2025',
+    id: 'kelce2026',
     name: 'Travis Kelce',
     position: 'TE',
     number: 87,
     teamId: 'kc',
-    receivingYards: 823,
-    touchdowns: 3
+    receivingYards: 189,
+    touchdowns: 2
   },
-
-  // Defensive Players
   {
-    id: 'watt2025',
-    name: 'T.J. Watt',
-    position: 'LB',
-    number: 90,
-    teamId: 'pit',
-    tackles: 84,
+    id: 'laporta2026',
+    name: 'Sam LaPorta',
+    position: 'TE',
+    number: 87,
+    teamId: 'det',
+    receivingYards: 156,
     touchdowns: 1
-  },
-  {
-    id: 'parsons2025',
-    name: 'Micah Parsons',
-    position: 'LB',
-    number: 11,
-    teamId: 'dal',
-    tackles: 103,
-    touchdowns: 0
   }
 ];
 
-// Aktuelle NFL Playoff-Spiele (Januar 2025)
+// Week 4 NFL Games - September 2025
 export const todaysGames: Game[] = [
   {
-    id: 'afc_divisional_1',
+    id: 'week4_game1',
     homeTeam: getTeam('kc'),
-    awayTeam: getTeam('hou'),
-    date: '2025-01-18',
-    time: '16:30',
-    week: 19, // Divisional Round
-    season: 2024,
+    awayTeam: getTeam('lac'),
+    date: '2025-09-29',
+    time: '13:00',
+    week: 4,
+    season: 2025,
     status: 'scheduled',
     venue: 'Arrowhead Stadium',
     winProbability: {
-      home: 78,
-      away: 22
+      home: 72,
+      away: 28
     }
   },
   {
-    id: 'afc_divisional_2',
-    homeTeam: getTeam('buf'),
-    awayTeam: getTeam('bal'),
-    date: '2025-01-19',
-    time: '18:30',
-    week: 19,
-    season: 2024,
+    id: 'week4_game2',
+    homeTeam: getTeam('det'),
+    awayTeam: getTeam('sea'),
+    date: '2025-09-29',
+    time: '13:00',
+    week: 4,
+    season: 2025,
     status: 'scheduled',
-    venue: 'Highmark Stadium',
+    venue: 'Ford Field',
     winProbability: {
       home: 65,
       away: 35
     }
   },
   {
-    id: 'nfc_divisional_1',
-    homeTeam: getTeam('det'),
-    awayTeam: getTeam('was'),
-    date: '2025-01-18',
-    time: '20:15',
-    week: 19,
-    season: 2024,
+    id: 'week4_game3',
+    homeTeam: getTeam('phi'),
+    awayTeam: getTeam('dal'),
+    date: '2025-09-29',
+    time: '16:25',
+    week: 4,
+    season: 2025,
     status: 'scheduled',
-    venue: 'Ford Field',
+    venue: 'Lincoln Financial Field',
     winProbability: {
       home: 58,
       away: 42
     }
   },
   {
-    id: 'nfc_divisional_2',
-    homeTeam: getTeam('phi'),
+    id: 'week4_game4',
+    homeTeam: getTeam('sf'),
     awayTeam: getTeam('lar'),
-    date: '2025-01-19',
-    time: '15:00',
-    week: 19,
-    season: 2024,
+    date: '2025-09-29',
+    time: '20:20',
+    week: 4,
+    season: 2025,
     status: 'scheduled',
-    venue: 'Lincoln Financial Field',
+    venue: 'Levi\'s Stadium',
     winProbability: {
-      home: 71,
-      away: 29
+      home: 61,
+      away: 39
     }
   }
 ];
 
-// Wild Card Results (vergangene Woche)
+// Recent Week 3 Results
 export const recentGames: Game[] = [
   {
-    id: 'wildcard_1',
-    homeTeam: getTeam('lac'),
-    awayTeam: getTeam('hou'),
-    date: '2025-01-11',
-    time: '16:30',
-    week: 18,
-    season: 2024,
-    homeScore: 12,
-    awayScore: 32,
-    status: 'completed',
-    venue: 'SoFi Stadium'
-  },
-  {
-    id: 'wildcard_2',
-    homeTeam: getTeam('pit'),
-    awayTeam: getTeam('bal'),
-    date: '2025-01-11',
-    time: '20:15',
-    week: 18,
-    season: 2024,
-    homeScore: 14,
-    awayScore: 28,
-    status: 'completed',
-    venue: 'Acrisure Stadium'
-  },
-  {
-    id: 'wildcard_3',
-    homeTeam: getTeam('tb'),
-    awayTeam: getTeam('was'),
-    date: '2025-01-12',
-    time: '20:15',
-    week: 18,
-    season: 2024,
-    homeScore: 20,
-    awayScore: 23,
-    status: 'completed',
-    venue: 'Raymond James Stadium'
-  },
-  {
-    id: 'wildcard_4',
-    homeTeam: getTeam('min'),
-    awayTeam: getTeam('lar'),
-    date: '2025-01-13',
-    time: '20:15',
-    week: 18,
-    season: 2024,
-    homeScore: 9,
-    awayScore: 27,
-    status: 'completed',
-    venue: 'U.S. Bank Stadium'
-  },
-  {
-    id: 'wildcard_5',
-    homeTeam: getTeam('den'),
-    awayTeam: getTeam('buf'),
-    date: '2025-01-12',
+    id: 'week3_game1',
+    homeTeam: getTeam('bal'),
+    awayTeam: getTeam('cin'),
+    date: '2025-09-22',
     time: '13:00',
-    week: 18,
-    season: 2024,
-    homeScore: 7,
-    awayScore: 31,
+    week: 3,
+    season: 2025,
+    homeScore: 28,
+    awayScore: 21,
     status: 'completed',
-    venue: 'Empower Field at Mile High'
+    venue: 'M&T Bank Stadium'
   },
   {
-    id: 'wildcard_6',
-    homeTeam: getTeam('gb'),
-    awayTeam: getTeam('phi'),
-    date: '2025-01-12',
-    time: '16:30',
-    week: 18,
-    season: 2024,
-    homeScore: 10,
-    awayScore: 22,
+    id: 'week3_game2',
+    homeTeam: getTeam('buf'),
+    awayTeam: getTeam('ne'),
+    date: '2025-09-22',
+    time: '13:00',
+    week: 3,
+    season: 2025,
+    homeScore: 31,
+    awayScore: 14,
     status: 'completed',
-    venue: 'Lambeau Field'
+    venue: 'Highmark Stadium'
+  },
+  {
+    id: 'week3_game3',
+    homeTeam: getTeam('sf'),
+    awayTeam: getTeam('ari'),
+    date: '2025-09-22',
+    time: '16:25',
+    week: 3,
+    season: 2025,
+    homeScore: 24,
+    awayScore: 17,
+    status: 'completed',
+    venue: 'Levi\'s Stadium'
   }
 ];
 
-// KI-Vorhersagen für aktuelle Playoff-Spiele
+// Week 4 Predictions
 export const predictions: Prediction[] = [
   {
-    gameId: 'afc_divisional_1',
-    homeWinProbability: 78,
-    awayWinProbability: 22,
+    gameId: 'week4_game1',
+    homeWinProbability: 72,
+    awayWinProbability: 28,
     predictedScore: {
-      home: 31,
+      home: 27,
       away: 17
     },
-    confidence: 89,
+    confidence: 84,
     factors: [
-      'Kansas City\'s playoff experience advantage',
-      'Houston\'s road struggles in cold weather',
-      'Mahomes vs rookie playoff QB matchup',
-      'Home field advantage at Arrowhead'
+      'Kansas City\'s undefeated start (3-0)',
+      'Home field advantage at Arrowhead',
+      'Mahomes vs Herbert matchup favors KC',
+      'Chargers\' road struggles in division games'
     ]
   },
   {
-    gameId: 'afc_divisional_2',
+    gameId: 'week4_game2',
     homeWinProbability: 65,
     awayWinProbability: 35,
     predictedScore: {
-      home: 27,
-      away: 21
+      home: 24,
+      away: 20
     },
-    confidence: 74,
+    confidence: 78,
     factors: [
-      'Buffalo\'s home field advantage in January',
-      'Josh Allen\'s mobility vs Ravens defense',
-      'Baltimore\'s playoff experience',
-      'Weather conditions favor ground game'
+      'Detroit\'s perfect 3-0 start',
+      'Lions\' explosive offensive weapons',
+      'Seattle\'s inconsistent road performance',
+      'Home dome advantage for Detroit'
     ]
   },
   {
-    gameId: 'nfc_divisional_1',
+    gameId: 'week4_game3',
     homeWinProbability: 58,
     awayWinProbability: 42,
     predictedScore: {
-      home: 28,
-      away: 24
+      home: 23,
+      away: 20
     },
-    confidence: 67,
+    confidence: 71,
     factors: [
-      'Detroit\'s explosive offensive weapons',
-      'Washington\'s rookie QB playoff inexperience',
-      'Lions\' dome advantage',
-      'Defensive matchup heavily favors Detroit'
+      'NFC East divisional rivalry intensity',
+      'Philadelphia\'s strong running game',
+      'Dallas showing improvement in Week 3',
+      'Eagles\' home field advantage'
     ]
   },
   {
-    gameId: 'nfc_divisional_2',
-    homeWinProbability: 71,
-    awayWinProbability: 29,
+    gameId: 'week4_game4',
+    homeWinProbability: 61,
+    awayWinProbability: 39,
     predictedScore: {
-      home: 30,
-      away: 20
+      home: 26,
+      away: 21
     },
-    confidence: 82,
+    confidence: 76,
     factors: [
-      'Philadelphia\'s dominant rushing attack',
-      'Saquon Barkley\'s playoff motivation',
-      'Eagles\' superior depth and talent',
-      'Home field advantage in cold weather'
+      'San Francisco\'s perfect 3-0 record',
+      'NFC West divisional knowledge advantage',
+      'Rams\' offensive line concerns',
+      'Sunday Night Football primetime factor'
     ]
   }
 ];
